@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="张芙锦的个人博客" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>HoloLens2开发环境配置</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">张芙锦的博客</a>
+  <a class="face-img" href="/">
+    <img src="https://i.loli.net/2020/10/26/obvg1QK9md8pMiO.jpg">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    HoloLens2开发环境配置
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2020-11-15T00:35:28.000Z" itemprop="datePublished">2020-11-15</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-06-10T06:30:19.119Z" itemprop="dateUpdated">2021-06-10</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>一、HoloLens开发环境的配置</p>
+<p>HoloLens2的开发环境需要：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Unity 2018.4.X 及其更高版本，这里推荐长期支持的版本</span><br><span class="line">与Unity相匹配的Visual Studio</span><br><span class="line">Windows SDK </span><br></pre></td></tr></table></figure>
+
+<p>与之相匹配的下载地址:</p>
+<p><a target="_blank" rel="noopener" href="https://store.unity.com/cn/download">Unity Hub</a>使用Hub可选择不同的Unity版本进行开发<br>相应的VS版本可在Unity安装时进行勾选，如果已经通过Unity安装过VS，则不需要重复勾选模块<br>而如果以前单独安装过VS，需要在VS Installer中再勾选安装Unity开发组件<br><a target="_blank" rel="noopener" href="https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk/">Windows SDK</a><br>SDK下载器的服务器地址不明，如果没有进度，请挂/关梯子。</p>
+<p>需要注意的是，进行Hololens开发还需要另外一个模块UWP（Universal Windows Platform），如下图所示<br><img src="model1.png" title="需要额外勾选的模块"></p>
+<center>需要额外勾选的模块</center>
+
+
+<p>二、下载并且安装MRTK开发包<br>在<a target="_blank" rel="noopener" href="https://github.com/Microsoft/MixedRealityToolkit-Unity/releases">MRTK</a> 中下载几个包，<br>分别为Examples,Extensions,Foundation,Tools由于是Github的源，有可能速度很慢，如果挂梯子后速度仍然不理想，可以安装GitHub加速插件来提速，效果明显，该插件在Chrome插件商店搜索即可，需要科学上网，如果无梯子，自行搜索离线包。<br><img src="model2.png" title="安装完脚本的界面"></p>
+<center>安装完加速脚本的MRTK下载界面</center>
+
+<p>下载完成后，我们在Unity中新建一个项目，如果有多个版本的Unity，需要注意新建项目所属的Unity版本，本测试环境为长期支持的2019.4.1X版本。<br>新建项目完成后可以导入/直接双击下载的包，需要注意的是安装包的顺序有一定要求，应该是Foundation-&gt;Examples-&gt;Tools-&gt;Extensions,安装期间的对话框均选择Apply。</p>
+<p>三、配置构建环境<br>本教程的意义就在次，由于网络上大部分的配置教程有了一年的历史，开发环境发生了微小的变化，但对于新手来说，如何去解决这些微小的变化是很棘手的。由于unity的20版本无长期支持的版本出现，因此这是最新的稳定版本的配置教程。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">构建环境</span><br></pre></td></tr></table></figure>
+<p>依次打开File-&gt;Bulid Setting-&gt;UWP,点击Switch Platform,选择UWP为构建环境，再将几个选项配置</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Target Device:HoloLens</span><br><span class="line">Architecture:ARM64</span><br><span class="line">Build Type:D3D Project</span><br><span class="line">Target SDK Version:Latest installed (或10.0.18362.0即更高)</span><br><span class="line">Visual Studio Version:Latest installed(或Visual Studio 2019）</span><br><span class="line">Build configuration:Release</span><br></pre></td></tr></table></figure>
+<p><img src="model3.png" title="构建环境选项"></p>
+<p>-&gt;Player Setting-&gt;Player，在新版本中，原有的XR Setting已经被弃用，而使用了更新的XR Plug-in Management,这个选项不再隶属于Player选项，而被独立出来，<br><img src="model4.png" title="新的XR设置"><br>-&gt;Player Setting-&gt;XR Plug-in Management,点选Windows Mixed Reality安装，安装完成后会增加一个子选项WMR，<br><img src="model5.png" title="添加组件"></p>
+<p>-&gt;Player Setting-&gt;Player-&gt;publishing Setting-&gt;Capabilitles,勾选下列选项</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">InternetClient</span><br><span class="line">InternetClientServe(网络功能)</span><br><span class="line">WebCam(相机)</span><br><span class="line">Microphone(麦克风)</span><br><span class="line">SpatialPerception(场景扫描)</span><br></pre></td></tr></table></figure>
+
+<p>-&gt;Player Setting-&gt;Player-&gt;publishing Setting-&gt;Support Device Families,勾选下列选项</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Holographic</span><br></pre></td></tr></table></figure>
+
+<p><img src="model6.png" title="添加组件"></p>
+<p>-&gt;Player Setting-&gt;Player-&gt;publishing Setting-&gt;packaging-&gt;package name 即为打包名，可自行修改</p>
+<p>至此，整个环境都搭建完毕了</p>
+<p>四、简单测试<br>Mixed Reality Tools-&gt;Add to Scene and Configure<br>添加完毕后，直接运行现在的场景<br>在场景中，Shift可生成左手的模型，空格可生成右手的模型，通过鼠标可以生成一个手势的操作，相应的效果应该如下：</p>
+<p><img src="model7.png" title="场景测试"></p>
+
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
