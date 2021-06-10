@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="张芙锦的个人博客" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>PCL点云库--点的类型</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">张芙锦的博客</a>
+  <a class="face-img" href="/">
+    <img src="https://i.loli.net/2020/10/26/obvg1QK9md8pMiO.jpg">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    PCL点云库--点的类型
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-06-10T07:35:00.000Z" itemprop="datePublished">2021-06-10</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-06-10T08:18:23.976Z" itemprop="dateUpdated">2021-06-10</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>PCL带有多种预定义的点类型，包括XYZ数据、SEE结构和更复杂的n维直方图表示形式。这些类型应该足以支持PCL中实现的所有算法和方法，但是在某种情况下，用户希望定义新的类型。</p>
+<p>1、为何是PointT类型</p>
+<pre><code>在早期，对于点云的共识是他是一种复杂的n维机构，需要能够表示不同类型的信息。但是，用户应该知道并且理解需要传递哪些类型的信息，以便于代码的理解、调试和优化。
+一个简单的例子是--&gt;对XYZ数据的简单操作。对于启用了SSE的处理器，最有效的方法是将3个维度存储为浮点数，然后再添加一个用于填充的浮点数。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"> struct PointXYZ</span><br><span class="line">&#123;</span><br><span class="line">  float x;</span><br><span class="line">  float y;</span><br><span class="line">  float z;</span><br><span class="line">  float padding;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>但是，作为示例，如果用户正在考虑在嵌入式平台上编译PCL，这样的结构可能会浪费内存。因此，可以使用没有最后一个浮点数的更简单的PointXYZ结构。
+此外，如果您的应用程序要求PointXYZPRGBNormal包含每个点的三维坐标、颜色信息和表面法线，则用上述方法定义的结构而言，都是很容易表示的。由于PCL中所有算法都应该是模块化的，因此除了结构定义外，无需进行其他更改。
+</code></pre>
+<p>2、PCL提供了那些PointT类型</p>
+<pre><code>为了尽可能的涵盖我们可能想到的所有可能情况，我们在PCL中定义了许多点类型，在我们去定义自己的点类型前，我们最好查看一下现有的点列表，有可能我们需要的点类型已经存在了。
+
+1）PointXYZ：float  x,y,z
+    这是最常用的数据类型之一，因为他仅包含了三维x,y,z坐标信息。三个浮点数用一个附加的浮点数填充来进行SSE对齐。用户可以通过points[i].data[0]或points[i].x以访问x坐标。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">    float data[4];</span><br><span class="line">      struct</span><br><span class="line">      &#123;</span><br><span class="line">        float x;</span><br><span class="line">        float y;</span><br><span class="line">        float z;</span><br><span class="line">      &#125;;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>2）PointXYZI：float x,y,z,intensity(强度)
+     简单的XYZ+强度的点类型。在理想情况下，这四个成员变量将创建一个于SSE对齐的单一结构。但是，由于大多数的点操作会将data[4]数组的最后一个分量设置为0或1（用于转换），因此我们不能
+     使强度成为统一结构的成员，因为其内容将被覆盖。例如，两个点之间的点积会将其第四个分量设置为0，否则该点积就没有意义了，以此类推。
+     因此，为了SS3对齐，我们用3个额外的浮点填充强度。做这样的处理有可能在存储处理方面效率低下，但是在内存对齐方法则表现良好。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">        &#123;</span><br><span class="line">          float data[4];</span><br><span class="line">          struct</span><br><span class="line">          &#123;</span><br><span class="line">            float x;</span><br><span class="line">            float y;</span><br><span class="line">            float z;</span><br><span class="line">          &#125;;</span><br><span class="line">        &#125;;</span><br><span class="line">union</span><br><span class="line">        &#123;</span><br><span class="line">          struct</span><br><span class="line">          &#123;</span><br><span class="line">            float intensity;</span><br><span class="line">          &#125;;</span><br><span class="line">          float data_c[4];</span><br><span class="line">        &#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>3）PointXYZRGBA：float x,y,z; std::unint32_t rgba
+     与PointXYZI相似，不同之处在于rgba包含打包成无符号32位整数的RGBA信息。由于使用了联合声明，还可以按照名称分别访问颜色通道。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"> union</span><br><span class="line">&#123;</span><br><span class="line">  float data[4];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float x;</span><br><span class="line">    float y;</span><br><span class="line">    float z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  union</span><br><span class="line">  &#123;</span><br><span class="line">    struct</span><br><span class="line">    &#123;</span><br><span class="line">      std::uint8_t b;</span><br><span class="line">      std::uint8_t g;</span><br><span class="line">      std::uint8_t r;</span><br><span class="line">      std::uint8_t a;</span><br><span class="line">    &#125;;</span><br><span class="line">    float rgb;</span><br><span class="line">  &#125;;</span><br><span class="line">  std::uint32_t rgba;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>4）PointXYZRGB：float x,y,z;std::uint32_t rgba;
+        与PointXYZRGBA相同       
+5）PointXY：float x,y;
+        简单的2D x,y点结构
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"> struct</span><br><span class="line">&#123;</span><br><span class="line">  float x;</span><br><span class="line">  float y;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>6）InrerestPoint：浮点数x,y,z,强度
+        与PointXYZ相似，不同之处在于强度包含了关键点强度的度量。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data[4];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float x;</span><br><span class="line">    float y;</span><br><span class="line">    float z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float strength;</span><br><span class="line">  &#125;;</span><br><span class="line">  float data_c[4];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>7）Normal ：float normal[3],curbature(曲率);
+        另一种最常用的数据类型，&quot;法线&quot;结构表示给定点处的表面法线，以及一个&quot;曲率&quot;度量值（在同一调度中获得，与贴面的特征值之间的关系相同）
+        由于在PCL中对表面法线进行的操作非常普遍，因此我们用第四个分量来填充他，以便于进行SSE对齐并提高计算效率。用户可以访问points[i].data_n[0]或points[i].normal[0]或points[i].normal_x,以访问法线向量的第一个坐标。同样的，曲率不能以正常数据操作就被覆盖的结构来存储。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data_n[4];</span><br><span class="line">  float normal[3];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float normal_x;</span><br><span class="line">    float normal_y;</span><br><span class="line">    float normal_z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float curvature;</span><br><span class="line">  &#125;;</span><br><span class="line">  float data_c[4];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>8）PointNormal：float x,y,z ;float normal[3],curvature;
+        保存XYZ数据以及表面法线和曲率的点结构
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data[4];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float x;</span><br><span class="line">    float y;</span><br><span class="line">    float z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data_n[4];</span><br><span class="line">  float normal[3];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float normal_x;</span><br><span class="line">    float normal_y;</span><br><span class="line">    float normal_z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float curvature;</span><br><span class="line">  &#125;;</span><br><span class="line">  float data_c[4];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>9）PointXYZRGBNormal：float x,y,z,normal[3],curvature;std::uint32_t rgba;
+    包含XYZ数据和RGBA颜色以及表面法线和曲率的点结构。（尽管名称内没有包括A,但该类型确实包含Aloha通道）
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data[4];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float x;</span><br><span class="line">    float y;</span><br><span class="line">    float z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data_n[4];</span><br><span class="line">  float normal[3];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float normal_x;</span><br><span class="line">    float normal_y;</span><br><span class="line">    float normal_z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    union</span><br><span class="line">    &#123;</span><br><span class="line">      union</span><br><span class="line">      &#123;</span><br><span class="line">        struct</span><br><span class="line">        &#123;</span><br><span class="line">          std::uint8_t b;</span><br><span class="line">          std::uint8_t g;</span><br><span class="line">          std::uint8_t r;</span><br><span class="line">          std::uint8_t a;</span><br><span class="line">        &#125;;</span><br><span class="line">        float rgb;</span><br><span class="line">      &#125;;</span><br><span class="line">      std::uint32_t rgba;</span><br><span class="line">    &#125;;</span><br><span class="line">    float curvature;</span><br><span class="line">  &#125;;</span><br><span class="line">  float data_c[4];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>10）PointXYZINormal：float x,y,z,intensity,normal[3],curvature
+    保存XYZ,强度值以及表面法线和曲率的点结构
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data[4];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float x;</span><br><span class="line">    float y;</span><br><span class="line">    float z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data_n[4];</span><br><span class="line">  float normal[3];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float normal_x;</span><br><span class="line">    float normal_y;</span><br><span class="line">    float normal_z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float intensity;</span><br><span class="line">    float curvature;</span><br><span class="line">  &#125;;</span><br><span class="line">  float data_c[4];</span><br><span class="line">&#125;;          </span><br></pre></td></tr></table></figure>
+<pre><code>11）PointWithRange：float x,y,z(union with float point[4]),range;
+    与PointXYZI相似，range包含从采集视点到某个点的距离的度量。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data[4];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float x;</span><br><span class="line">    float y;</span><br><span class="line">    float z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float range;</span><br><span class="line">  &#125;;</span><br><span class="line">  float data_c[4];</span><br><span class="line">&#125;;     </span><br></pre></td></tr></table></figure>
+<pre><code>12）PointWithViewpoint-float x，y，z，vp_x，vp_y，vp_z；
+    与PointXYZI相似，除了vp_x，vp_y和vp_z包含获取视点作为3D点。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data[4];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float x;</span><br><span class="line">    float y;</span><br><span class="line">    float z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float vp_x;</span><br><span class="line">    float vp_y;</span><br><span class="line">    float vp_z;</span><br><span class="line">  &#125;;</span><br><span class="line">  float data_c[4];</span><br><span class="line">&#125;; </span><br></pre></td></tr></table></figure>                
+<pre><code>13）MomentInvariants：float j1，j2，j3；
+    简单点类型，将3个矩不变式保存在曲贴面上
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  float j1, j2, j3;</span><br><span class="line">&#125;; </span><br></pre></td></tr></table></figure>
+<pre><code>14）PrincipalRadiiRSD ：float r_min, r_max;
+        简单点类型，将2 RSD半径保持在表面斑块处   
+15）Boundary ：std::uint8_t boundary_point;
+    简单点类型，用于确定点是否位于曲面边界上
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  std::uint8_t boundary_point;</span><br><span class="line">&#125;;     </span><br></pre></td></tr></table></figure>
+<pre><code>16）PrincipalCurvatures：float Principal_curvature [3]，pc1，pc2；
+    简单点类型，用于保存给定点的主曲率。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  union</span><br><span class="line">  &#123;</span><br><span class="line">    float principal_curvature[3];</span><br><span class="line">    struct</span><br><span class="line">    &#123;</span><br><span class="line">      float principal_curvature_x;</span><br><span class="line">      float principal_curvature_y;</span><br><span class="line">      float principal_curvature_z;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;;</span><br><span class="line">  float pc1;</span><br><span class="line">  float pc2;</span><br><span class="line">&#125;;     </span><br></pre></td></tr></table></figure>
+<pre><code>17）PFHSignature125：float pfh [125]
+    简单点类型，用于保存给定点的PFH（点特征直方图）
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  float histogram[125];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>18）FPFHSignature33：float fpfh [33];
+    保存给定点的FPFH（快速特征直方图）的简单点类型
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  float histogram[33];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>19）VFHSignature308 ：float vfh [308];
+    保留给定点的VFH（视点特征直方图）的简单点类型。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  float histogram[308];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>20）Narf36 ：float x, y, z, roll, pitch, yaw; float descriptor[36]
+    简单点类型，用于保存给定点的NARF（正常对齐的半径特征
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  float x, y, z, roll, pitch, yaw;</span><br><span class="line">  float descriptor[36];</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<pre><code>21）BorderDescription - int x, y; BorderTraits traits
+    简单点类型，用于保存给定点的边框类型。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  int x, y;</span><br><span class="line">  BorderTraits traits;</span><br><span class="line">&#125;; </span><br></pre></td></tr></table></figure>
+<pre><code>22）IntensityGradient - float gradient[3]
+    简单点类型，用于保存给定点的强度梯度。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  union</span><br><span class="line">  &#123;</span><br><span class="line">    float gradient[3];</span><br><span class="line">    struct</span><br><span class="line">    &#123;</span><br><span class="line">      float gradient_x;</span><br><span class="line">      float gradient_y;</span><br><span class="line">      float gradient_z;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;     </span><br></pre></td></tr></table></figure>
+<pre><code>23）Histogram - float histogram[N]
+    通用nD直方图占位符。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">template &lt;int N&gt;</span><br><span class="line">struct Histogram</span><br><span class="line">&#123;</span><br><span class="line">  float histogram[N];</span><br><span class="line">&#125;;    </span><br></pre></td></tr></table></figure>
+<pre><code>24）PointWithScale - float x, y, z, scal
+    与PointXYZI相似，不同之处是比例尺包含考虑将某个点用于几何运算的比例尺（例如，用于其最近邻居计算的球体的半径，窗口大小等）。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">struct</span><br><span class="line">&#123;</span><br><span class="line">  union</span><br><span class="line">  &#123;</span><br><span class="line">    float data[4];</span><br><span class="line">    struct</span><br><span class="line">    &#123;</span><br><span class="line">      float x;</span><br><span class="line">      float y;</span><br><span class="line">      float z;</span><br><span class="line">    &#125;;</span><br><span class="line">  &#125;;</span><br><span class="line">  float scale;</span><br><span class="line">&#125;;  </span><br></pre></td></tr></table></figure>
+<pre><code>25）PointSurfel - float x, y, z, normal[3], rgba, radius, confidence, curvature
+    一种复杂点类型，包含XYZ数据，表面法线以及RGB信息，比例，置信度和表面曲率。
+</code></pre>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data[4];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float x;</span><br><span class="line">    float y;</span><br><span class="line">    float z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  float data_n[4];</span><br><span class="line">  float normal[3];</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    float normal_x;</span><br><span class="line">    float normal_y;</span><br><span class="line">    float normal_z;</span><br><span class="line">  &#125;;</span><br><span class="line">&#125;;</span><br><span class="line">union</span><br><span class="line">&#123;</span><br><span class="line">  struct</span><br><span class="line">  &#123;</span><br><span class="line">    std::uint32_t rgba;</span><br><span class="line">    float radius;</span><br><span class="line">    float confidence;</span><br><span class="line">    float curvature;</span><br><span class="line">  &#125;;</span><br><span class="line">  float data_c[4];</span><br><span class="line">&#125;;                             </span><br></pre></td></tr></table></figure>
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
