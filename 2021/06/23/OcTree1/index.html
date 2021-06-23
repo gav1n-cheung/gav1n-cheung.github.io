@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="张芙锦的个人博客" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>使用八叉树进行空间分区和搜索操作</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">张芙锦的博客</a>
+  <a class="face-img" href="/">
+    <img src="https://i.loli.net/2020/10/26/obvg1QK9md8pMiO.jpg">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    使用八叉树进行空间分区和搜索操作
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-06-23T02:16:54.000Z" itemprop="datePublished">2021-06-23</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-06-23T07:06:25.530Z" itemprop="dateUpdated">2021-06-23</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>八叉树是用于管理稀疏3D数据的集于树的数据结构，每个内部节点都有八个子节点。<br>我们要说明如何执行体素搜索内的临近点、k最近邻搜索和半径搜索内的临近点</p>
+<p>k邻域搜索(K Nearest Neighbor Search)<br>    所谓K邻域算法，就是给定一个训练数据集，对新的输入实例，在训练数据集中找到与该实例最临近的K的实例(也就是K个临近点)，这K个实例的多数属于这个类，就把该输入实例分类到这个类中。<br><img src="picture1.png" title="2D情况示例"></p>
+<center>2D情况示例</center>
+    如果，有两类不同的样本数据，分别用蓝色的小正方形和红色的小三角形表示，而图正中间的那个绿色的圆所表示的数据则是待分类的数据。也就是说，现在，我们不知道中间那个绿色的数据属于
+    那一类(蓝色或红色)，下面，我们就要解决这个问题：给这个绿色的圆分类。
+    我们从绿色圆的临近点下手，但是这个临近点应该怎么规定呢？
+        如果K=3，绿色圆点的最近的3个临近点是2个红色和1个蓝色，基于统计的方法，我们认为这个绿色圆点属于红色一类
+        而如果K=5，绿色圆点的最近5个临近点是2个红色和3个蓝色，我们就认为绿色圆点就属于蓝色一类
+    通过上面的例子，我们可以通过不同类型的临近点数量来判定未知分类点的类型，衡量待判断点周围邻居的权重，将其归类到权重更大的那一类中。这就是K紧邻算法的核心思想。
+    K近邻算法使用的模型实际上对应与特征空间的划分。K值的选择、距离度量和分类决策规则是该算法的三个基本要素：
+        （1）K值的选择会对算法的结果产生重大影响，K值较小意味着只有与输入实例较近的训练实例才会对预测结果起作用，但是容易发生过拟合；而如果选取的K值较大，优点是可以减少学习的估计误差，
+            但缺点是学习的近似误差增大，这时与输入实例较远的训练实例也会对预测起作用，使预测发生错误。在实际应用中，K值一般选择一个较小的数值，通常采用交叉验证的方法来选择最优的K值，
+            随着训练实例数目趋向于无穷和K=1时。误差率不会超过贝叶斯误差率的2倍，如果K也趋向于无穷，则误差率趋向于贝叶斯误差率
+        （2）该算法中的分类决策规则往往是多数表决，则由输入实例的K的最临近的训练实例中的多数类决定输入实例的类别
+        （3）距离度量一般采用Lp距离，当p=2时，即为欧式距离，在度量之前，应该将每个属性的值规范化，这样有助于防止具有较大初始值的属性比具有较小初始值域的属性权重多大。
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;vector&gt;</span><br><span class="line">#include &lt;ctime&gt;</span><br><span class="line"></span><br><span class="line">#include &lt;pcl/point_cloud.h&gt;</span><br><span class="line">#include &lt;pcl/octree/octree_search.h&gt;</span><br><span class="line"></span><br><span class="line">using namespace std;</span><br><span class="line"></span><br><span class="line">int main(int argc,char** argv)&#123;</span><br><span class="line">    srand((unsigned int) time(NULL));//用系统时间初始化随机种子</span><br><span class="line"></span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    //创建点云数据</span><br><span class="line">    cloud-&gt;width=1000;</span><br><span class="line">    cloud-&gt;height=1;</span><br><span class="line">    cloud-&gt;points.resize(cloud-&gt;height*cloud-&gt;width);</span><br><span class="line">    for (size_t i = 0; i &lt; cloud-&gt;size(); ++i) &#123;</span><br><span class="line">        (*cloud)[i].x=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">        (*cloud)[i].y=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">        (*cloud)[i].z=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    &#125;</span><br><span class="line">    /**************************************************************</span><br><span class="line">     创建一个octree实例，用设置的分辨率进行初始化，该octree用它的页节点存放点索引向量，</span><br><span class="line">     分辨率参数描述最低一级的octree的最小体素尺寸，因此octree的深度是分辨率和点云空间维度的函数，</span><br><span class="line">     如果直到点云的边界框，应该用defineBoundingbox方法把他分配给octree然后通过点云指针把所有点增加到octree中</span><br><span class="line">     **************************************************************/</span><br><span class="line">    float resolution=128.0f;</span><br><span class="line"></span><br><span class="line">    pcl::octree::OctreePointCloudSearch&lt;pcl::PointXYZ&gt; octree (resolution);//初始化octree</span><br><span class="line"></span><br><span class="line">    octree.setInputCloud(cloud);//设置输入点云，建立点云和octree的关系</span><br><span class="line"></span><br><span class="line">    octree.addPointsFromInputCloud();//构建octree</span><br><span class="line"></span><br><span class="line">    pcl::PointXYZ searchPoint;//设置SearchPoint</span><br><span class="line"></span><br><span class="line">    searchPoint.x=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    searchPoint.y=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    searchPoint.z=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    /*************************************************************</span><br><span class="line">     一旦PointCloud和octree联系在一起，就能进行体素近邻搜索，把查询点所在体素中的其他点的索引</span><br><span class="line">     作为查询结果返回，结果以点索引向量的形式保存，因此搜索点和搜索结果之间的距离取决于octree的分辨率参数</span><br><span class="line">     *************************************************************/</span><br><span class="line">    vector&lt;int&gt; pointIdxVec;//存储体素近邻搜索结果向量</span><br><span class="line">    //执行搜索，结果返回到pointIdVec向量中</span><br><span class="line">    if (octree.voxelSearch(searchPoint,pointIdxVec))&#123;</span><br><span class="line">        cout&lt;&lt;&quot;Neighbors within voxel search at (&quot;&lt;&lt;searchPoint.x</span><br><span class="line">            &lt;&lt;&quot; &quot;&lt;&lt;searchPoint.y</span><br><span class="line">            &lt;&lt;&quot; &quot;&lt;&lt;searchPoint.z</span><br><span class="line">            &lt;&lt;&quot;)&quot;</span><br><span class="line">            &lt;&lt;std::endl;</span><br><span class="line">        //打印结果坐标</span><br><span class="line">        for (size_t i = 0; i &lt; pointIdxVec.size(); ++i)</span><br><span class="line">            cout&lt;&lt;&quot;  &quot;&lt;&lt;(*cloud)[pointIdxVec[i]].x</span><br><span class="line">                &lt;&lt;&quot; &quot;&lt;&lt;(*cloud)[pointIdxVec[i]].y</span><br><span class="line">                &lt;&lt;&quot; &quot;&lt;&lt;(*cloud)[pointIdxVec[i]].z&lt;&lt;endl;</span><br><span class="line">    &#125;</span><br><span class="line">    /******************************************************************</span><br><span class="line">     K倍设置为10，K近邻搜索方法把搜索结果写到两个分开的向量，第一个pointIdxNKNSearch包含</span><br><span class="line">     搜索结果(结果点的索引的向量)，第二个向量为pointNKNSquareDistance存储搜索点与相邻点</span><br><span class="line">     之间的距离的平方</span><br><span class="line">     *****************************************************************/</span><br><span class="line">     //K近邻搜索</span><br><span class="line">    int K=10;</span><br><span class="line"></span><br><span class="line">    vector&lt;int&gt; pointIdxNKNSearch;//结果点索引向量，因此我们想要获取结果点的坐标应该是 *cloud[pointIdxNKNSearch[i]]，需要注意，这个向量是用于存放索引的，而非点的，与上面的体素搜索得到的结果不同</span><br><span class="line">    vector&lt;float&gt; pointNKNSquareDistance;//搜索点与近邻点之间的距离的平方</span><br><span class="line"></span><br><span class="line">    cout&lt;&lt;&quot;K nearset neighbor search at (&quot;&lt;&lt;searchPoint.x</span><br><span class="line">        &lt;&lt;&quot; &quot;&lt;&lt;searchPoint.y</span><br><span class="line">        &lt;&lt;&quot; &quot;&lt;&lt;searchPoint.z</span><br><span class="line">        &lt;&lt;&quot;) with K=&quot;&lt;&lt;K&lt;&lt;endl;</span><br><span class="line"></span><br><span class="line">    if (octree.nearestKSearch(searchPoint,K,pointIdxNKNSearch,pointNKNSquareDistance)&gt;0)&#123;</span><br><span class="line">        for (size_t i = 0; i &lt; pointIdxNKNSearch.size(); ++i) &#123;</span><br><span class="line">            cout&lt;&lt;&quot;     &quot;&lt;&lt;(*cloud)[pointIdxNKNSearch[i]].x</span><br><span class="line">                &lt;&lt;&quot; &quot;&lt;&lt;(*cloud)[pointIdxNKNSearch[i]].y</span><br><span class="line">                &lt;&lt;&quot; &quot;&lt;&lt;(*cloud)[pointIdxNKNSearch[i]].z</span><br><span class="line">                &lt;&lt;&quot;(squared distance: &quot;&lt;&lt;pointNKNSquareDistance[i]&lt;&lt;&quot;)&quot;&lt;&lt;endl;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    //半径内近邻搜索</span><br><span class="line">    vector&lt;int&gt; pointIdxRadiusSearch;//存放结果点的索引的向量</span><br><span class="line">    vector&lt;float&gt; pointRadiusSquareDistance;//结果点与搜索点距离的平方值</span><br><span class="line"></span><br><span class="line">    float radius=256.0f*rand()/(RAND_MAX+1.0f);//这里的半径我们设定为随机值</span><br><span class="line"></span><br><span class="line">    std::cout &lt;&lt; &quot;Neighbors within radius search at (&quot; &lt;&lt; searchPoint.x</span><br><span class="line">              &lt;&lt; &quot; &quot; &lt;&lt; searchPoint.y</span><br><span class="line">              &lt;&lt; &quot; &quot; &lt;&lt; searchPoint.z</span><br><span class="line">              &lt;&lt; &quot;) with radius=&quot; &lt;&lt; radius &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    if (octree.radiusSearch(searchPoint,radius,pointIdxRadiusSearch,pointRadiusSquareDistance))&#123;</span><br><span class="line">        for (std::size_t i = 0; i &lt; pointIdxRadiusSearch.size (); ++i)</span><br><span class="line">            std::cout &lt;&lt; &quot;    &quot;  &lt;&lt;   (*cloud)[ pointIdxRadiusSearch[i] ].x</span><br><span class="line">                      &lt;&lt; &quot; &quot; &lt;&lt; (*cloud)[ pointIdxRadiusSearch[i] ].y</span><br><span class="line">                      &lt;&lt; &quot; &quot; &lt;&lt; (*cloud)[ pointIdxRadiusSearch[i] ].z</span><br><span class="line">                      &lt;&lt; &quot; (squared distance: &quot; &lt;&lt; pointRadiusSquareDistance[i] &lt;&lt; &quot;)&quot; &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+输出结果为（由于随机性结果有可能不同）
+
+<p><img src="result.png"></p>
+<center>输出结果</center>
+
+
+
+
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
