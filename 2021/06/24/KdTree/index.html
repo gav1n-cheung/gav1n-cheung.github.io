@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="张芙锦的个人博客" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>使用KdTree进行搜索</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">张芙锦的博客</a>
+  <a class="face-img" href="/">
+    <img src="https://i.loli.net/2020/10/26/obvg1QK9md8pMiO.jpg">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    使用KdTree进行搜索
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-06-24T00:38:13.000Z" itemprop="datePublished">2021-06-24</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-06-24T07:11:30.701Z" itemprop="dateUpdated">2021-06-24</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>在本教程中，我们将介绍如何使用KdTree查找特定点或位置的K个最临近点，然后还将探讨如何找到用户指定半径内的所有邻居。</p>
+<p>点云主要是表征目标表面的海量点的集合，并不具备传统网格数据的几何拓扑信息，所以点云数据处理中最为核心的问题就是建立离散点之间的拓扑关系，实现基于邻域关系的快速查找。<br>KdTree是CS中用于分割k维空间中的一些点的数据结构，主要应用于多维空间关键数据的搜索(如范围搜索和最近邻搜索)。K-D树是二进制空间分割树的特殊情况，用于组织表示K维空间中点的几何，是一种带有其他约束的二分查找树，为了达到目的，通常只在三个维度中进行处理因此所有的KdTree都是三维的KdTree，KdTree的每一维在指定维度上分开所有的子节点，在树的根部所有子节点是以第一个指定的维度被分开。<br>kdTree算法可以分为两大部分，一部分是有关KdTree本身这种数据结构建立的算法，另一部分是在建立的KdTree树上如何进行最临近查找的算法。<br>KdTree是一个二叉树，每个节点表示一个空间范围。KdTree每个节点中主要包含的数据结构有：<br>    Node-data    数据矢量    数据集中某个数据点，为n维矢量(在KdTree中就是k维)<br>    Range        空间矢量    该节点所代表的空间范围<br>    Split        整数       垂直于分割超平面的方向轴序号<br>    Left         KdTree     由位于该节点分割超平面左子空间内所有数据点所构成的Kd树<br>    Right        KdTree     由位于该节点分割超平面右子空间内所有数据点所构成的Kd树<br>    Parent       KdTree     父节点<br>关于kDTree的构建就不再详述了</p>
+<p>KdTree查找算法<br>在KdTree中进行数据的查找也是特征匹配的重要环节，其目的是检索在KdTree中与查询点距离最近的数据点，这里先以一个简单的实例来描述最近邻查找的基本思路。<br>在图中的星号点表示要查询的点(2.1,3.1).通过二叉搜索，顺着搜索路径很快就能找到最临近的近似点，也就是叶子节点(2.3)。而找到的叶子节点并不一定就是最邻近的，最临近点的肯定距离查询点更近，应该位于以查询点为圆心且通过叶子节点的圆域中内。为了找到真正的最近邻，还要进行回溯操作：算法沿搜索路径反向查找是否有距离查询点更近的数据点。此例中搜索路径为&lt;(7,2),(5,4),(2,3)&gt;，首先我们将(2,3)作为当前最近邻点，计算其到查询点的距离为0.141，然后回溯到其父节点(5,4),并判断在该父节点的其他子节点空间中是否有距离查询点更近的数据点。以(2.1,3.1)为圆心，以0.1414为半径画圆，如下图所示。发现该圆并不和超平面y=4交割，因此不用进入(5,4)节点右子空间中去搜索。<br><img src="picture1.png" title="KdTree搜索"></p>
+<center>KdTree搜索</center>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;vector&gt;</span><br><span class="line">#include &lt;ctime&gt;</span><br><span class="line"></span><br><span class="line">#include &lt;pcl/point_cloud.h&gt;</span><br><span class="line">#include &lt;pcl/kdtree/kdtree_flann.h&gt;</span><br><span class="line"></span><br><span class="line">int main(int argc,char** argv)&#123;</span><br><span class="line">    srand(time(NULL));//用系统时间初始化随机种子</span><br><span class="line"></span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line"></span><br><span class="line">    //随机点云生成</span><br><span class="line">    cloud-&gt;width=1000;</span><br><span class="line">    cloud-&gt;height=1;</span><br><span class="line">    cloud-&gt;resize(cloud-&gt;height*cloud-&gt;width);</span><br><span class="line"></span><br><span class="line">    for (size_t i = 0; i &lt; cloud-&gt;size(); ++i) &#123;</span><br><span class="line">        cloud-&gt;points[i].x=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">        cloud-&gt;points[i].y=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">        cloud-&gt;points[i].z=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    &#125;</span><br><span class="line">    //创建KdTreeFLANN对象，并把创建的点云设置为输入，创建一个searchPoint变量作为查询点</span><br><span class="line">    pcl::KdTreeFLANN&lt;pcl::PointXYZ&gt; kdtree;</span><br><span class="line">    //设定搜索空间</span><br><span class="line">    kdtree.setInputCloud(cloud);</span><br><span class="line">    pcl::PointXYZ searchPoint;</span><br><span class="line">    searchPoint.x=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    searchPoint.y=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    searchPoint.z=1024.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line"></span><br><span class="line">    /********************K邻近搜索**********************************</span><br><span class="line">     设定一个值K，使用该搜索方法会搜索指定点的邻域，找出距离目标点最近的10个点</span><br><span class="line">     **************************************************************/</span><br><span class="line">    int K=10;//这里设定K为10</span><br><span class="line"></span><br><span class="line">    std::vector&lt;int&gt; pointIdxNKNSearch(K);//存储搜索到的点</span><br><span class="line">    std::vector&lt;float&gt; pointNKNSquareDistance(K);//存储搜索到的点与目标点距离的平方</span><br><span class="line">    std::cout&lt;&lt;&quot;K nearset neighbor search at (&quot;&lt;&lt;searchPoint.x</span><br><span class="line">    &lt;&lt;&quot; &quot;&lt;&lt;searchPoint.y</span><br><span class="line">    &lt;&lt;&quot; &quot;&lt;&lt;searchPoint.z</span><br><span class="line">    &lt;&lt;&quot;) with K=&quot;&lt;&lt;K&lt;&lt;std::endl;</span><br><span class="line"></span><br><span class="line">    if(kdtree.nearestKSearch(searchPoint,K,pointIdxNKNSearch,pointNKNSquareDistance))&#123;</span><br><span class="line">        for (int i = 0; i &lt; pointIdxNKNSearch.size(); ++i) &#123;</span><br><span class="line">            std::cout &lt;&lt; &quot;    &quot;  &lt;&lt;   cloud-&gt;points[ pointIdxNKNSearch[i] ].x</span><br><span class="line">                      &lt;&lt; &quot; &quot; &lt;&lt; cloud-&gt;points[ pointIdxNKNSearch[i] ].y</span><br><span class="line">                      &lt;&lt; &quot; &quot; &lt;&lt; cloud-&gt;points[ pointIdxNKNSearch[i] ].z</span><br><span class="line">                      &lt;&lt; &quot; (squared distance: &quot; &lt;&lt; pointNKNSquareDistance[i] &lt;&lt; &quot;)&quot; &lt;&lt; std::endl;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    /********************KdTree半径搜索******************************</span><br><span class="line">     设定一个半径，使用KdTree的搜索方式来搜索指定半径内的点，将其信息存储在向量中</span><br><span class="line">     **************************************************************/</span><br><span class="line">    std::vector&lt;int&gt; pointIdxRadiusSearch;</span><br><span class="line">    std::vector&lt;float&gt; pointRadiusSquareDistance;</span><br><span class="line"></span><br><span class="line">    float radius=256.0f*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    std::cout &lt;&lt; &quot;Neighbors within radius search at (&quot; &lt;&lt; searchPoint.x</span><br><span class="line">              &lt;&lt; &quot; &quot; &lt;&lt; searchPoint.y</span><br><span class="line">              &lt;&lt; &quot; &quot; &lt;&lt; searchPoint.z</span><br><span class="line">              &lt;&lt; &quot;) with radius=&quot; &lt;&lt; radius &lt;&lt; std::endl;</span><br><span class="line">    if (kdtree.radiusSearch(searchPoint,radius,pointIdxRadiusSearch,pointRadiusSquareDistance))&#123;</span><br><span class="line">        for (size_t i = 0; i &lt; pointIdxRadiusSearch.size (); ++i)</span><br><span class="line">            std::cout &lt;&lt; &quot;    &quot;  &lt;&lt;   cloud-&gt;points[ pointIdxRadiusSearch[i] ].x</span><br><span class="line">                      &lt;&lt; &quot; &quot; &lt;&lt; cloud-&gt;points[ pointIdxRadiusSearch[i] ].y</span><br><span class="line">                      &lt;&lt; &quot; &quot; &lt;&lt; cloud-&gt;points[ pointIdxRadiusSearch[i] ].z</span><br><span class="line">                      &lt;&lt; &quot; (squared distance: &quot; &lt;&lt; pointRadiusSquareDistance[i] &lt;&lt; &quot;)&quot; &lt;&lt; std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>输出结果如下:</p>
+<p><img src="result.png" title="输出结果"></p>
+<center>输出结果</center>
+
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
