@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="Cheung&#39;Blog" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>ICP点云配准</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">Cheung&#39;Blog</a>
+  <a class="face-img" href="/">
+    <img src="https://i.postimg.cc/nrPGq12s/2021-07-03-18-21.png">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    ICP点云配准
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-07-04T00:03:00.000Z" itemprop="datePublished">2021-07-04</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-07-04T01:30:54.097Z" itemprop="dateUpdated">2021-07-04</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>在逆向工程，计算机视觉，文物数字化等领域中，由于点云的不完整，旋转错位，平移错位等，使得要得到完整的点云就要对局部点云进行配准，为了得到被测物体的完整数据模型，需要确定一个合适的坐标性，将从各个视角得到的点集合并到统一的坐标系下形成一个完整的点云，然后就可以方便进行可视化的操作，这就是点云数据的配准。点云的配准有手动配准依赖、依赖仪器的配准和自动配准，点云的自动配准技术是通过一定的算法或者统计学规律利用计算机计算两块点云之间错位，从而达到两块点云自动配准的效果，其实质就是把不同的坐标系中测得的数据点进行坐标系的变换，以得到整体的数据模型，问题的关键是如何让得到坐标变换的参数R（旋转矩阵）和T（平移向量），使得两视角下测得的三位数据经坐标变换后的距离最小。目前配准算法按照过程可以分为整体配准和局部配准。PCL中有单独的配准模块，是掀了配准相关的基础数据结构，和经典的配准算法如ICP。</p>
+<p>PCL中实现的配准算法以及相关的概念：</p>
+<p>两两配准的简介：<br>    一对点云数据集的配准问题是两两配准，通常通过应用一个估计得到的平移和旋转的4*4刚体变换矩阵来使得一个点云的数据集和另一个点云数据集（目标数据集）进行完美的配准。<br>    具体的实现步骤如下：<br>    （1）首先从两个数据集中按照同样的关键点选取的标准来提取关键点<br>    （2）对选择所有的关键点分别计算其特征描述子<br>    （3）结合特征描述子在两个数据集中的坐标位置，以两者之间的特征和位置的相似度为基础，来估算他们的对应关系，初步的估计对应点对。<br>    （4）假设数据包含噪声点，应该去除对配准有影响的对应点对<br>    （5）利用剩余的正确的对应关系来估算刚体变换，完成配准。</p>
+<p>对应估计(correspondences estimation)：<br>    假设我们已经得到扫描的点云数据获得的两组特征向量，在此基础上，我们必须找到相似特征，再确定数据的重叠部分，然后才能进行配准。根据特征的类型，PCL使用不同的方法来搜索特征之间的对应关系。<br>    使用点匹配时，使用点的XYZ的坐标作为特征值，针对有序点云和无序点云数据的不同处理策略：<br>    （1）穷举配准(brute force matching)<br>    （2）kdTree-最近邻查询(FLANN)<br>    （3）在有序点云数据的图像空间中查找<br>    （4）在无序点云数据的索引空间中查找</p>
+<p>对应关系的去除(correspondence rejection)<br>    由于噪声的影响，通常并不是所有估计的对应关系都是正确的，由于错误的对应关系对于最终的刚体变换矩阵的估算会产生负面影响，所以必须去除它们，可以采用随机采样一致性估计，或者其他方法剔除错误的对应关系，最终使用对应关系数据只使用一定比例的对应关系，这样既能提高变换矩阵的估计精度也能提高配准点的速度。</p>
+<p>变换矩阵的估计（transformation estimation）<br>    估算对应矩阵的步骤如下：<br>    （1）在对应关系的基础上评估一些错误的度量标准<br>    （2）在摄像机位姿（运动估计）和最小化错误度量标准下估算一个刚体变换<br>    （3）优化点的结构<br>    （4）使用刚体变换将源点云旋转/平移与目标所在的同一个坐标系下，用所有点，点的一个子集或者关键点运算一个内部的ICP循环。<br>    （5）进行迭代，直到符合收敛性判断标准为止</p>
+<p>迭代最近点算法(Iterative Closest Point ICP)<br>    ICP算法对待拼接的两片点云，首先根据一定的准则确立对应点集P和Q，其中对应点对的个数，然后通过最小乘法迭代计算最优的坐标变换，即旋转矩阵R和平移矢量t，使得误差函数最小，ICP处理流程分为四个主要步骤：<br>    （1）对原始点云数据进行采样<br>    （2）确定初始对应点集<br>    （3）去除错误对应点对<br>    （4）坐标变换的求解</p>
+<p><img src="picture1.png"></p>
+<center>点云配准的过程</center>
+
+<p>如何使用迭代最近点算法：在代码中使用ICP迭代最近点算法，程序随机生成一个点云作为源点云，并将其沿x轴平移后作为目标点云，然后利用ICP估计源到目标的刚体变换矩阵，对中间所有信息都打印出来。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;pcl/point_types.h&gt;</span><br><span class="line">#include &lt;pcl/io/pcd_io.h&gt;</span><br><span class="line">#include &lt;pcl/registration/icp.h&gt;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud_out(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line"></span><br><span class="line">    cloud-&gt;width=5;</span><br><span class="line">    cloud-&gt;height=1;</span><br><span class="line">    cloud-&gt;is_dense= false;</span><br><span class="line">    cloud-&gt;resize(cloud-&gt;height*cloud-&gt;width);</span><br><span class="line">    for (size_t i = 0; i &lt; cloud-&gt;points.size(); ++i) &#123;</span><br><span class="line">        cloud-&gt;points[i].x=1024*rand()/(RAND_MAX+1.0f);</span><br><span class="line">        cloud-&gt;points[i].y=1024*rand()/(RAND_MAX+1.0f);</span><br><span class="line">        cloud-&gt;points[i].z=1024*rand()/(RAND_MAX+1.0f);</span><br><span class="line">    &#125;</span><br><span class="line">    std::cout&lt;&lt;&quot;Saved &quot;&lt;&lt;cloud-&gt;points.size()&lt;&lt;&quot; data points to input: &quot;&lt;&lt;std::endl;</span><br><span class="line">    for (size_t i = 0; i &lt; cloud-&gt;points.size(); ++i)</span><br><span class="line">        std::cout&lt;&lt;&quot; &quot;&lt;&lt;cloud-&gt;points[i].x&lt;&lt;&quot; &quot;&lt;&lt;cloud-&gt;points[i].y&lt;&lt;&quot; &quot;&lt;&lt;cloud-&gt;points[i].z</span><br><span class="line">                &lt;&lt;std::endl;</span><br><span class="line">    *cloud_out=*cloud;</span><br><span class="line">    std::cout&lt;&lt;&quot;size:&quot;&lt;&lt;cloud_out-&gt;points.size()&lt;&lt;std::endl;</span><br><span class="line">    //实现一个简单地点云刚体变换，构造目标点云</span><br><span class="line">    for (size_t i = 0; i &lt; cloud-&gt;points.size(); ++i)</span><br><span class="line">        cloud_out-&gt;points[i].x=cloud-&gt;points[i].x+0.7f;</span><br><span class="line">    std::cout&lt;&lt;&quot;Transformed&quot;&lt;&lt;cloud-&gt;points.size()&lt;&lt;&quot; data points:&quot;&lt;&lt;std::endl;</span><br><span class="line">    for (size_t i = 0; i &lt; cloud_out-&gt;points.size(); ++i)</span><br><span class="line">        std::cout&lt;&lt;&quot;    &quot;&lt;&lt;cloud_out-&gt;points[i].x&lt;&lt;&quot; &quot;&lt;&lt;cloud_out-&gt;points[i].y&lt;&lt;&quot; &quot;</span><br><span class="line">                &lt;&lt;cloud_out-&gt;points[i].z&lt;&lt;std::endl;</span><br><span class="line">    </span><br><span class="line">    pcl::IterativeClosestPoint&lt;pcl::PointXYZ,pcl::PointXYZ&gt; icp;//实例化ICP对象，这里的两个点云类型都是xyz类型</span><br><span class="line">    icp.setInputCloud(cloud);//设定源点云</span><br><span class="line">    icp.setInputTarget(cloud_out);//设定配准目标</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt; Final;//存储经过配准变换后的点云</span><br><span class="line">    icp.align(Final);//将最后的结果给到final容器</span><br><span class="line">    std::cout&lt;&lt;&quot;has converged:&quot;&lt;&lt;icp.hasConverged()&lt;&lt;&quot; score:&quot;&lt;&lt;icp.getFitnessScore()&lt;&lt;std::endl;</span><br><span class="line">    std::cout&lt;&lt;icp.getFitnessScore()&lt;&lt;std::endl;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="picture2.png"></p>
+<center>运行结果如下</center>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
