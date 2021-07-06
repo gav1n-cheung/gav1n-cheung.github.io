@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="Cheung&#39;Blog" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>正态分布变换进行配准</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">Cheung&#39;Blog</a>
+  <a class="face-img" href="/">
+    <img src="https://i.postimg.cc/xT7h6nCZ/2021-07-04-12-03.png">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    正态分布变换进行配准
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-07-06T07:11:12.000Z" itemprop="datePublished">2021-07-06</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-07-06T12:31:37.287Z" itemprop="dateUpdated">2021-07-06</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>我们使用正态分布变换(normal Distributions Transform)来确定两个大型点云之间的刚体变换，正态分布变换算法是一种配准算法，应用于三维点的统计模型，使用标准最优化技术来确定两个点云见的最优匹配，因为其在配准的过程中不利用对应点的特征计算和匹配，因此时间比其他方法快。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;pcl/io/pcd_io.h&gt;</span><br><span class="line">#include &lt;pcl/point_types.h&gt;</span><br><span class="line">#include &lt;pcl/registration/ndt.h&gt;//DNT（正态分布）标配类头文件</span><br><span class="line">#include &lt;pcl/filters/approximate_voxel_grid.h&gt;//滤波类头文件</span><br><span class="line">#include &lt;pcl/visualization/pcl_visualizer.h&gt;</span><br><span class="line">#include &lt;boost/thread/thread.hpp&gt;</span><br><span class="line"></span><br><span class="line">int main(int argc,char** argv) &#123;</span><br><span class="line">    //加载房间的第一次扫描点云数据作为目标</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr target_cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    if (pcl::io::loadPCDFile&lt;pcl::PointXYZ&gt;(&quot;room_scan1.pcd&quot;,*target_cloud)==-1)&#123;</span><br><span class="line">        PCL_ERROR(&quot;Couldn&#x27;t read file room_scan1.pcd\n&quot;);</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line">    std::cout&lt;&lt;&quot;Loaded &quot;&lt;&lt;target_cloud-&gt;size()&lt;&lt;&quot; data points from room_scan1.pcd&quot;&lt;&lt;std::endl;</span><br><span class="line">    //加载从新视角得到的第二次扫描点云作为源点云</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr input_cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    if (pcl::io::loadPCDFile&lt;pcl::PointXYZ&gt;(&quot;room_scan2.pcd&quot;,*input_cloud)==-1)&#123;</span><br><span class="line">        PCL_ERROR(&quot;Couldn&#x27;t read file room_scan2.pcd\n&quot;);</span><br><span class="line">        return -1;</span><br><span class="line">    &#125;</span><br><span class="line">    //后续配准是完成对源点云到目标点云的参考坐标系的变换矩阵的估计，得到第二组点云变换到第一组点云坐标系下的变换矩阵</span><br><span class="line">    //将输入的扫描点云数据过滤到原始尺寸的10%以提高匹配的速度。只对源点云进行滤波，减少其数据量，而目标点云不需要滤波处理</span><br><span class="line">    //因为在NDT算法中在目标点云对应的体素网格数据结构的统计计算不使用单个点，而是使用包含在每个体素单元格中的点的统计数据</span><br><span class="line">    std::cout&lt;&lt;&quot;Loaded &quot;&lt;&lt;input_cloud-&gt;size()&lt;&lt;&quot; data points from room_scan2.pcd&quot;&lt;&lt;std::endl;</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr filtered_cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    pcl::ApproximateVoxelGrid&lt;pcl::PointXYZ&gt; approximate_voxel_grid;</span><br><span class="line">    approximate_voxel_grid.setLeafSize(0.2,0.2,0.2);</span><br><span class="line">    approximate_voxel_grid.setInputCloud(input_cloud);</span><br><span class="line">    approximate_voxel_grid.filter(*filtered_cloud);</span><br><span class="line">    std::cout&lt;&lt;&quot;Filtered cloud contains &quot;&lt;&lt;filtered_cloud-&gt;size()&lt;&lt;&quot; data points from room_scan2.pcd&quot;&lt;&lt;std::endl;</span><br><span class="line">    </span><br><span class="line">    //实例化DNT对象</span><br><span class="line">    pcl::NormalDistributionsTransform&lt;pcl::PointXYZ,pcl::PointXYZ&gt; ndt;</span><br><span class="line"></span><br><span class="line">    ndt.setTransformationEpsilon(0.01);//为终止条件设置最小转换差异</span><br><span class="line">    ndt.setStepSize(0.1);//为more-thuente线搜索设置最大步长</span><br><span class="line">    ndt.setResolution(1.0);//设置NDT网格结构的分辨率</span><br><span class="line">    //以上参数在对象较大时比较适用，而如果对象很小，比如一个杯子，则参数要进行很大程度的缩小</span><br><span class="line">    </span><br><span class="line">    //设置匹配迭代的最大次数，这个参数控制程序运行的最大迭代次数，一般来说这个限制值之前优化程序会在epsilon边下阈值下终止，</span><br><span class="line">    //添加最大迭代次数限制，能够增加程序的鲁棒性，阻止程序在错误的方向上运行时间过长</span><br><span class="line">    ndt.setMaximumIterations(35);</span><br><span class="line">    //设置源点云</span><br><span class="line">    ndt.setInputSource(filtered_cloud);</span><br><span class="line">    //设置目标点云</span><br><span class="line">    ndt.setInputTarget(target_cloud);</span><br><span class="line"></span><br><span class="line">    //设置机器人测距法得到的粗略的矩阵结果</span><br><span class="line">    Eigen::AngleAxisf init_rotation (0.6931, Eigen::Vector3f::UnitZ());</span><br><span class="line">    Eigen::Translation3f init_translation(1.79387,0.720047,0);</span><br><span class="line">    Eigen::Matrix4f init_guess=(init_translation*init_rotation).matrix();</span><br><span class="line"></span><br><span class="line">    //输出结果</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr output_cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    //这里的output不能做为最后的结果，因为上面对点云做了滤波处理，并非原始的点云数据</span><br><span class="line">    ndt.align(*output_cloud,init_guess);</span><br><span class="line">    std::cout&lt;&lt;&quot;Normal Distributions Transform has converged:&quot;&lt;&lt;ndt.hasConverged()</span><br><span class="line">                &lt;&lt;&quot; score: &quot;&lt;&lt;ndt.getFitnessScore()&lt;&lt;std::endl;</span><br><span class="line">    //使用创建的变换对未过滤的点云进行变换</span><br><span class="line">    pcl::transformPointCloud(*input_cloud,*output_cloud,ndt.getFinalTransformation());</span><br><span class="line">    //将最终输出保存下来</span><br><span class="line">    pcl::io::savePCDFileASCII(&quot;room_scan2_transformed.pcd&quot;,*output_cloud);</span><br><span class="line"></span><br><span class="line">    //将两个点云进行可视化，其中源点云为绿色，目标点云为红色</span><br><span class="line">    boost::shared_ptr&lt;pcl::visualization::PCLVisualizer&gt; viewer_final (new pcl::visualization::PCLVisualizer(&quot;3D Viewer&quot;));</span><br><span class="line">    viewer_final-&gt;setBackgroundColor(0,0,0);</span><br><span class="line"></span><br><span class="line">    pcl::visualization::PointCloudColorHandlerCustom&lt;pcl::PointXYZ&gt; output_color(output_cloud,0,255,0);</span><br><span class="line">    viewer_final-&gt;addPointCloud&lt;pcl::PointXYZ&gt;(output_cloud,output_color,&quot;output cloud&quot;);</span><br><span class="line">    viewer_final-&gt;setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,&quot;output cloud&quot;);</span><br><span class="line"></span><br><span class="line">    pcl::visualization::PointCloudColorHandlerCustom&lt;pcl::PointXYZ&gt; target_color(target_cloud,255,0,0);</span><br><span class="line">    viewer_final-&gt;addPointCloud&lt;pcl::PointXYZ&gt;(target_cloud,target_color,&quot;target cloud&quot;);</span><br><span class="line">    viewer_final-&gt;setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE,1,&quot;target cloud&quot;);</span><br><span class="line"></span><br><span class="line">    viewer_final-&gt;addCoordinateSystem(1.0);//显示坐标轴</span><br><span class="line">    viewer_final-&gt;initCameraParameters();//初始化摄像头</span><br><span class="line"></span><br><span class="line">    while (!viewer_final-&gt;wasStopped())&#123;</span><br><span class="line">        viewer_final-&gt;spinOnce();</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="picture2.png"></p>
+<center>输出结果</center>
+
+<p><img src="picture1.png"></p>
+<center>结果可视化</center>
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
