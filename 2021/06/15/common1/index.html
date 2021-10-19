@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="Cheung&#39;Blog" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>PCL点云库--点云的基本变换</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">Cheung&#39;Blog</a>
+  <a class="face-img" href="/">
+    <img src="https://i.postimg.cc/xT7h6nCZ/2021-07-04-12-03.png">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    PCL点云库--点云的基本变换
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-06-15T02:50:05.000Z" itemprop="datePublished">2021-06-15</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-06-15T03:14:46.561Z" itemprop="dateUpdated">2021-06-15</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>一：基本结构<br> PCL点云库的基本数据类型为PointCloud pcl::PointCloud。PointCloud是C++类，其中包含以下的数据字段：<br>(1) pcl:’width pcl::PointCloud::width’ (数据类型int)</p>
+<pre><code>用点的数量来表示点云数据集的宽度。宽度width有两个含义：
+    （a）如果是无组织的点云数据集，它可以指定点云中的总数。
+    （b）也可以指定有组织的点云数据集一行的总点数
+Note：有组织的点云数据集---赋予了类似于一个有组织的图像（或矩阵）状的结构的点云数据集。其中，数据被划分为行和列。
+    这种数据集有可能来自于立体摄像机或飞行时间摄像机获得的数据。
+    有组织的数据集的优点在于，通过相邻点之间的关系，最临近操作的操作更加有效，从而加快了计算速度并且降低了PCL中某些算法的成本。
+    Note：可投影点云---指根据针孔相机模型，在有组织的点云中点的(u,v)索引与实际3D值之间具有相关性。这种相关性可以以最简单的方法表示为
+     u = f*x/z 和 v = f*y/z 。
+</code></pre>
+<p>(2) pcl:’height pcl::PointCloud::height’ (数据类型int)</p>
+<pre><code>用点的数量来表示点云数据集的高度。高度height有两个含义：
+    （a）如果是无组织的点云数据集，将其置为1，可以标明数据集是否已经被组织。
+    （b）也可以指定有组织的点云数据集的总行数（高度）
+</code></pre>
+<p>(3) pcl:’points pcl::PointCloud’ (数据类型 std::vector<PointT>)</p>
+<pre><code>储存所有PointT类型的所有点的向量数组。例如：对于包含XYZ数据的点云，points包含pcl::PointXYZ所有元素的向量。
+</code></pre>
+<p>(4) pcl:’is_dense pcl::PointCloud::is_dense’ （数据类型 bool）</p>
+<pre><code>指定点云所有数据是否都是有限的(是则为ture)，或者某些点的XYZ值有可能包含Inf（下确界）/NaN值（未定值或不可表示的值）（是则为false）
+</code></pre>
+<p>(5) pcl:’sensor_origin_pcl::PointCloud::sensor_origin_’ (数据类型 Eigen::Vector4f)</p>
+<pre><code>指定传感器采集的姿势（固定/平移）。该变量通常是可选的，并且在PCL中的大多数算法中都不使用。
+</code></pre>
+<p>(6) pcl:’sensor_orientation_pcl::PointCloud::sensor_orientation_’ (数据类型 Eigen::Quaternionf)</p>
+<pre><code>指定传感器采集姿势（方法）。该变量成员通常是可选的，并且在PCL中的大多数算法都不使用。
+</code></pre>
+<p>为了简化开发，PointCloudpcl::PointCloud类包含许多帮助程序成员函数。例如，用户不必检查代 码中的height是否为1就可以查看数据集是否是组织好的，而可以使用 pcl:’PointCloud pcl::PointCloud::isOrganized’。</p>
+<p>所述的PointT类型是主点数据类型，并且描述了每个单独点的类型。PCL中有许多点类型。<br>想要查看更多的点类型，见<a target="_blank" rel="noopener" href="https://gav1n-cheung.github.io/2021/06/10/common/">PCL–点的类型</a></p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line"></span><br><span class="line">#include &lt;pcl/io/pcd_io.h&gt;</span><br><span class="line">#include &lt;pcl/io/ply_io.h&gt;</span><br><span class="line">#include &lt;pcl/point_cloud.h&gt;</span><br><span class="line">#include &lt;pcl/console/parse.h&gt;</span><br><span class="line">#include &lt;pcl/common/transforms.h&gt; // 点云坐标变换</span><br><span class="line">#include &lt;pcl/visualization/pcl_visualizer.h&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">void pointUsages()&#123;</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    cloud-&gt;width=640;//设定点云的宽度</span><br><span class="line">    cloud-&gt;height=480;//只要height！=1，则点云就是有组织的结构，则点的总数=height*width</span><br><span class="line"></span><br><span class="line">    cloud-&gt;width=307200;    //对于无组织的点云数据，宽度就是点云中点的总数</span><br><span class="line">    cloud-&gt;height=1;    //无组织的点云数据</span><br><span class="line"></span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt; cloud1;</span><br><span class="line">    //std::vector&lt;pcl::PointXYZ&gt; data=cloud1.points;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>

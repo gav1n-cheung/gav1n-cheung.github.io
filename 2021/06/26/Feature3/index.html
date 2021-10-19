@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="Cheung&#39;Blog" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>点特征直方图(PFH)描述子</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">Cheung&#39;Blog</a>
+  <a class="face-img" href="/">
+    <img src="https://i.postimg.cc/xT7h6nCZ/2021-07-04-12-03.png">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    点特征直方图(PFH)描述子
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-06-26T01:45:31.000Z" itemprop="datePublished">2021-06-26</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-06-27T01:14:05.897Z" itemprop="dateUpdated">2021-06-27</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>随着点特征表示的发展，围绕特定点的几何图形表示的表面法线和曲率估计有一些基础。虽然它们非常快速并且容易计算，但是无法捕获太多细节，因为它们仅仅使用几个值来近似点的k邻域的几何形状，这就导致了大多数场景将包含许多具有相同或非常相似的特征值的点，从而建少了他们的信息特征。然而大部分场景中包含许多特征点，这些特征点有相同的或者非常相近的特征值，因此采用点特征表示法，其直接结果就减少了全局的特征信息。<br>PFH的计算依赖于表面法线的估计，应该首先具备前面法线估计的基础。</p>
+<p>基础理论</p>
+<p>PFH公式的目的是通过值的多维直方图来概括点周围的平均曲率，从而对点的k邻域几何特性进行编码。此高维空间为特征提供了有意义的签名，对于下层表面的6D姿势不变，并且可以很好地应对附近存在的不同采样密度或噪声水平。<br>PFH表示基于k邻域中的点与其估计的表面法线之间的关系。简而言之，他试图通过考虑法线方向之间的所有相互作用来尽可能地捕获采样部分的表面变化。因此，最终的超空间取决于每个点的表面法线估计的精确度（法线估计的好坏程度）。</p>
+<p><img src="picture.png"></p>
+<center>PFH计算的影响区域</center>
+    
+<p>上图展示了查询点Pq的PFH计算的影响区域图，该查询点用红色标记并放置在半径为r的圆和所有k个邻居(与Pq距离小于3D球体半径r的点)的中间完全互联成网格。最终的PFH描述符被计算为邻域中所有对点之间的关系直方图，因此计算复杂度为O(k^2)（计算复杂度，不包括低阶项和首项的系数，比如–5n^3+2n的复杂度表示为O(n^3)）<br>为了计算两个点pi和pj及其关联的法线Ni和之间的相对差Nj，我们在其中定义了一个固定的坐标新。</p>
+<p><img src="picture2.jpg"></p>
+<center>关于坐标系的建立和角度特征的得出</center>
+
+<p>其中d为点对的欧式距离，则（alpha, phi, heta, d）就可将两个点的坐标和法线共12个值(坐标值xyz<em>2+法线xyz</em>2=12)简化为4个值。<br>要估计一点对的PFH四元组，则调用以下代码</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">computePairFeatures (const Eigen::Vector4f &amp;p1, const Eigen::Vector4f &amp;n1,</span><br><span class="line">                     const Eigen::Vector4f &amp;p2, const Eigen::Vector4f &amp;n2,</span><br><span class="line">                     float &amp;f1, float &amp;f2, float &amp;f3, float &amp;f4);</span><br></pre></td></tr></table></figure>
+
+<p>为表示查询点的最终PFH，所有的四元组会以某种统计的方式放进直方图中，这个过程首先把每个特征值范围划分为b个子区间，并统计落在子区间的点数目，因为四分之三的特征在上述中为法线的角度计量，在三角化元上可以将他们的参数值非常容易地归一到相同的区间内。<br>一个统计的例子:把每个特征区间划分成等分的相同数目，为此在完全关联的空间内创建有b个区间的直方图。在这个空间中，一个直方图中某一个区间统计个数的增一对应一个点的四个特征值。在某些情况下，第四个特征量d通常由机器人捕获的2.5D数据集中并不重要，因为临近点的距离从视点开始是递增的，而并非不变的，在扫描中局部点密度影响特征时，实践证明省略d是有益的。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;pcl/features/normal_3d.h&gt;</span><br><span class="line">#include &lt;pcl/point_types.h&gt;</span><br><span class="line">#include &lt;pcl/features/pfh.h&gt;</span><br><span class="line">#include &lt;pcl/io/pcd_io.h&gt;</span><br><span class="line">#include &lt;pcl/io/io.h&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    //读取点云数据</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    pcl::io::loadPCDFile(&quot;bunny.pcd&quot;,*cloud);</span><br><span class="line">    //计算法线</span><br><span class="line">    pcl::PointCloud&lt;pcl::Normal&gt;::Ptr normals(new pcl::PointCloud&lt;pcl::Normal&gt;);</span><br><span class="line">    pcl::search::KdTree&lt;pcl::PointXYZ&gt;::Ptr kdtree(new pcl::search::KdTree&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    pcl::NormalEstimation&lt;pcl::PointXYZ,pcl::Normal&gt; ne;</span><br><span class="line">    ne.setRadiusSearch(0.03);</span><br><span class="line">    ne.setInputCloud(cloud);//输入的点云</span><br><span class="line">    ne.compute(*normals);//计算法线</span><br><span class="line">    //计算点特征直方图</span><br><span class="line">    pcl::PFHEstimation&lt;pcl::PointXYZ,pcl::Normal,pcl::PFHSignature125&gt; pfh;</span><br><span class="line">    pfh.setInputCloud(cloud);</span><br><span class="line">    pfh.setInputNormals(normals);</span><br><span class="line">    pfh.setSearchMethod(kdtree);</span><br><span class="line">    pcl::PointCloud&lt;pcl::PFHSignature125&gt;::Ptr pfhs(new pcl::PointCloud&lt;pcl::PFHSignature125&gt;);//接受结果的对象</span><br><span class="line">    pfh.setRadiusSearch(0.05);//次数使用的半径必须要大于估计表面法线时使用的半径</span><br><span class="line">    for (int i = 0; i &lt; normals-&gt;size(); i++)</span><br><span class="line">    &#123;</span><br><span class="line">        if (!pcl::isFinite&lt;pcl::Normal&gt;((*normals)[i]))</span><br><span class="line">        &#123;</span><br><span class="line">            PCL_WARN(&quot;normals[%d] is not finite\n&quot;, i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    pfh.compute(*pfhs);</span><br><span class="line">    std::cout&lt;&lt;&quot;compute finished&quot;&lt;&lt;std::endl;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>PFHEstimation类在程序内部执行的实际计算为：<br>对点云P中的每个点p<br>（1）得到p点的最近邻元素<br>（2）对于邻域内的每点对，计算其三个角度特征参数值<br>（3）将所有结果统计到一个输出直方图中</p>
+
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>

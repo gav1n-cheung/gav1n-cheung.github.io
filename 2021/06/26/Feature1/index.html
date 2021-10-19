@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="Cheung&#39;Blog" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>PCL点云特征描述与提取</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">Cheung&#39;Blog</a>
+  <a class="face-img" href="/">
+    <img src="https://i.postimg.cc/xT7h6nCZ/2021-07-04-12-03.png">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    PCL点云特征描述与提取
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-06-26T00:08:34.000Z" itemprop="datePublished">2021-06-26</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-06-26T01:01:57.870Z" itemprop="dateUpdated">2021-06-26</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>3D点云特征描述与提取是点云信息处理中最基础也是最关键的一部分。点云的识别、分割、重采样、配准、曲面重建等大部分处理算法，都严重依赖于特征描述和提取的结果。从尺度上来说，一般分为局部特征的描述和全局特征的描述，例如局部的法线等几何形状特征的描述，全局的拓扑特征的描述，都属于3D点云特征描述和提取的范畴。</p>
+<p>特征描述与提取相关的概念和算法<br>    1、3D形状内容描述子(3D shape contexts)<br>    利用描述子建立曲面间的对应点在3D物体识别领域有广泛的应用，采用一个向量描述曲面上指定点或邻域的形状特征，通过匹配向量的值来建立不同曲面点的对应关系，此相邻则称为指定点的描述子，经典描述子的3D形状内容描述子结构简单，辨别力强，且对噪声不敏感。<br>    2、旋转图像(spin image)<br>    旋转图像特征描述子主要用于3D场景中的曲面匹配和模型识别。</p>
+<p>PCL中描述三维特征相关基础</p>
+<pre><code>理论基础：
+在原始表示形式下，点的定义是用笛卡尔坐标系x,y,z相对于一个给定的原点来简单表示的三维映射系统的概念。假定坐标系的原点不随着时间而改变，这里有两个点p1和p2分别在时间t1和t2被捕获。有着相同的坐标，对这两个点作比较其实是属于不适定问题(ill-posed problem)，因为虽然相对于一些距离测度它们是相等的，但是它们取样于完全不同的表面，因为当把它们和临近的其他环境中点放在一起时，它们表达着完全不同的信息，这是因为在t1和t2之间局部环境有可能发生变化。一些获取设备也许能够提供取样点的额外数据，例如强度或表面反射率等，甚至颜色，然而这并不能完全解决问题，单从两个点之间来对比这仍然是不适定问题。由于各种不同需求需要进行对比以便能够区分曲面空间的分布情况，应用软件要求更好的特征度量方式，因此作为一个单一实体的三维点概念和笛卡尔坐标系被淘汰了，出现了一个新的概念取而代之:局部描述子。文献中对这一概念的描述有许多不同的命名，如：形状描述子(shape descriptors)或几何特征(geometric feature)，本文中剩余部分都统称为点特征表示。通过包括周围的邻域，特征描述子能够表征采样表面的几何性质，它有助于解决不适定的对比问题，理想情况下相同或相似的表面上的点的特征值将非常相似(相对特定度量准则)，而不同表面上的点的特征描述子将有明显差异。下面几个条件，通过能否获得相同的局部表面特征子，可以判定点特征表示方式的优劣：
+（1）刚体变换--三维旋转和三维平移变化不会影响特征向量F估计，即特征向量具有平移旋转不变性。
+（2）改变采样密度--原则上，一个局部表面小块的采样密度无论是大还是小，都应该有相同的特征向量值，即应该有相同的特征向量值，即特征向量具有抗密度干扰性。
+（3）噪声--数据中有轻微噪声的情况下，点特征表示在它的特征向量中必须保持相同或者及其相似的值，即特征向量对点云噪声具有稳定性。
+通常，PCL中特征向量利用快速Kd-Tree查询，使用近似法来计算查询点的最近邻元素，通常有两种查询类型，K邻域查询，半径搜索两种方法
+</code></pre>
+<p>法线估计实例<br>    一旦确定邻域以后，查询点的邻域点可以用来估计一个局部特征描述子，他用查询点周围邻域点描述采样点的几何特征，描述几何表面图形的一个重要属性，首先是推断他在坐标系中的方位，也就是估计他的法线，表面法线是表面的一个重要的属性，在许多领域中都有重要的应用。</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;pcl/point_types.h&gt;</span><br><span class="line">#include &lt;pcl/io/io.h&gt;</span><br><span class="line">#include &lt;pcl/io/pcd_io.h&gt;</span><br><span class="line">#include &lt;pcl/features/integral_image_normal.h&gt;</span><br><span class="line">#include &lt;pcl/features/normal_3d.h&gt;</span><br><span class="line">#include &lt;pcl/visualization/pcl_visualizer.h&gt;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud(new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    pcl::io::loadPCDFile(&quot;table_400.pcd&quot;,*cloud);</span><br><span class="line"></span><br><span class="line">    //创建法线估计对象</span><br><span class="line">    pcl::NormalEstimation&lt;pcl::PointXYZ,pcl::Normal&gt; normal;</span><br><span class="line">    normal.setInputCloud(cloud);//设定输入点云</span><br><span class="line">    //创建KdTree对象用于法线计算的邻域搜索</span><br><span class="line">    pcl::search::KdTree&lt;pcl::PointXYZ&gt;::Ptr tree(new pcl::search::KdTree&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    normal.setSearchMethod(tree);//设定搜索方式</span><br><span class="line">    //输出容器，注意为normal类型的</span><br><span class="line">    pcl::PointCloud&lt;pcl::Normal&gt;::Ptr cloud_output(new pcl::PointCloud&lt;pcl::Normal&gt;);</span><br><span class="line">    normal.setRadiusSearch(0.03);//设定搜索半径为0.03</span><br><span class="line">    normal.compute(*cloud_output);//计算法线并输出</span><br><span class="line">    pcl::PCDWriter writer;</span><br><span class="line">    writer.write(&quot;normal.pcd&quot;,*cloud_output);</span><br><span class="line">    pcl::visualization::PCLVisualizer viewer;</span><br><span class="line">    viewer.setBackgroundColor(0,0,0);</span><br><span class="line">    viewer.addPointCloudNormals&lt;pcl::PointXYZ,pcl::Normal&gt;(cloud,cloud_output);</span><br><span class="line">    while (!viewer.wasStopped())&#123;</span><br><span class="line">        viewer.spinOnce();</span><br><span class="line">    &#125;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="result.png"></p>
+<center>输出法线可视化结果</center>
+
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>

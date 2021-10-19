@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="Cheung&#39;Blog" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>快速点特征直方图(FPFH)描述子</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">Cheung&#39;Blog</a>
+  <a class="face-img" href="/">
+    <img src="https://i.postimg.cc/xT7h6nCZ/2021-07-04-12-03.png">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    快速点特征直方图(FPFH)描述子
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-06-27T00:17:05.000Z" itemprop="datePublished">2021-06-27</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-06-27T01:14:10.777Z" itemprop="dateUpdated">2021-06-27</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>已知点云P中有n个点，那么它的PFH的理论计算复杂度为O(k^2)，其中k是点云P中的每个点p计算特征向量时考虑的邻域数量。对于实时应用或接近实时应用时，密集点云的点特征直方图(PFH)的计算，是一个主要的性能瓶颈。此处为PFH计算方式的简化形式，称为快速点特征直方图FPFH(Fast Point Feature Histograms)<br>为了简化直方图的特征计算，我们执行以下过程：<br>（1）对于每一个查询点，计算这个点和它的邻域点p_q之间的一组元组(\alpha, \phi, \theta)(无d)，第一步结果我们称为简化的点特征直方图SPFH(Simple Point Feature Histograms)<br>（2）重新确定每个点的k邻域，使用邻近的SPFH值来计算的最终直方图(称为FPFH)</p>
+<p><img src="picture1.png"></p>
+<center>FPFH计算公式</center>
+
+<p>其中权重wi表示某个给定度量空间中查询点p_q和相邻点之间的距离p_i，因此对(p_q,p_i)进行评分，但如果需要，也可以选择不同的度量。为了理解这种加权方案的重要性，下图展示了以p_q为中心的k邻域集的影响区域。</p>
+<p><img src="picture2.png"></p>
+<center>各点计算SPFH的影响区域</center>
+
+<p>对于上图中的例子，我们首先计算查询点p_q的SFPH，通过p_q及其邻居点之间创建点对来估计其SPFH值(用红线表示)。对数据集中的所有点都做此操作，然后使用p_q的k近邻点的SFPH值做重新加权，从而创建p_q的FPFH。由于额外的加权方案而产生的额外FPFH连接用黑线表示。如图所示，一些点对需要被计算两次，在图中用粗线表示。</p>
+<p>PFH和FPFH之间的区别：<br>PFH和FPFH计算方式之间的主要区别总结如下：<br>（1）FPFH没有完全互联p_q的所有临近点的计算参数进行统计，从图中可以看到，这样的操作可能楼掉了一些重要的点对，而这些漏掉的点对可能对捕获点周围的几何特征有贡献。<br>（2）PFH特征模型是查询点周围的一个精确的邻域半径内的点对，而FPFH还包括半径r范围以外的额外点对(但是是在2r内)<br>（3）由于重新加权方案，FPFH结合了SPFH值并重新捕获了一些点相邻值对。<br>（4）FPFH的整体复杂度大大下降，从而使其在实时应用中使用成为了可能<br>（5）结果直方图通过去相关值来简化，即简单地创建d个单独的特征值直方图，每个特征维度一个，并将它们连接在一起。</p>
+<p><img src="picture3.png"></p>
+<center>PFH和FPFH的比较</center>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">#include &lt;iostream&gt;</span><br><span class="line">#include &lt;pcl/io/pcd_io.h&gt;</span><br><span class="line">#include &lt;pcl/features/fpfh.h&gt;</span><br><span class="line">#include &lt;pcl/point_types.h&gt;</span><br><span class="line">#include &lt;pcl/features/normal_3d.h&gt;</span><br><span class="line">#include &lt;pcl/search/kdtree.h&gt;</span><br><span class="line"></span><br><span class="line">int main() &#123;</span><br><span class="line">    pcl::PointCloud&lt;pcl::PointXYZ&gt;::Ptr cloud (new pcl::PointCloud&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    pcl::PointCloud&lt;pcl::Normal&gt;::Ptr normals(new pcl::PointCloud&lt;pcl::Normal&gt;);</span><br><span class="line">    pcl::search::KdTree&lt;pcl::PointXYZ&gt;::Ptr kdTree(new pcl::search::KdTree&lt;pcl::PointXYZ&gt;);</span><br><span class="line">    pcl::NormalEstimation&lt;pcl::PointXYZ,pcl::Normal&gt; ne;</span><br><span class="line">    pcl::io::loadPCDFile(&quot;bunny.pcd&quot;,*cloud);</span><br><span class="line">    ne.setInputCloud(cloud);</span><br><span class="line">    ne.setRadiusSearch(0.03);</span><br><span class="line">    ne.setSearchMethod(kdTree);</span><br><span class="line">    ne.compute(*normals);</span><br><span class="line"></span><br><span class="line">    pcl::FPFHEstimation&lt;pcl::PointXYZ,pcl::Normal,pcl::FPFHSignature33&gt; fpfh;</span><br><span class="line">    fpfh.setInputCloud(cloud);</span><br><span class="line">    fpfh.setInputNormals(normals);</span><br><span class="line">    fpfh.setSearchMethod(kdTree);</span><br><span class="line">    pcl::PointCloud&lt;pcl::FPFHSignature33&gt;::Ptr fpfhs(new pcl::PointCloud&lt;pcl::FPFHSignature33&gt;);</span><br><span class="line">    fpfh.setRadiusSearch(0.05);</span><br><span class="line">    for (int i = 0; i &lt; normals-&gt;size(); ++i) &#123;</span><br><span class="line">        if (!pcl::isFinite&lt;pcl::Normal&gt;((*normals)[i]))&#123;</span><br><span class="line">            PCL_WARN(&quot;normal [%d] is not finite \n&quot;,i);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    fpfh.compute(*fpfhs);</span><br><span class="line">    std::cout &lt;&lt; &quot;compute finished&quot; &lt;&lt; std::endl;</span><br><span class="line">    return 0;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>FPFHEstimation类的实际计算内部只执行以下操作<br>对点云中P中的每个点p<br>第一步：<br>（1）得到p的邻域元素<br>（2）计算每一对p，p_k的三个角度参数值<br>（3）把所有结果统计输出到一个SPFH直方图<br>第二步：<br>（1）得到p的最近邻元素<br>（2）使用p近邻的每一个SPFH和一个权重计算式，来计算最终的p的FPFH</p>
+
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
