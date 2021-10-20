@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="Cheung&#39;Blog" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>PCA</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">Cheung&#39;Blog</a>
+  <a class="face-img" href="/">
+    <img src="https://i.postimg.cc/xT7h6nCZ/2021-07-04-12-03.png">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    PCA
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-10-20T02:17:40.000Z" itemprop="datePublished">2021-10-20</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-10-20T02:19:13.463Z" itemprop="dateUpdated">2021-10-20</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>使用PCA方法来计算点云数据的主成分和法向量</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br></pre></td><td class="code"><pre><span class="line"># 实现PCA分析和法向量计算，并加载数据集中的文件进行验证</span><br><span class="line"></span><br><span class="line">import open3d as o3d</span><br><span class="line">import os</span><br><span class="line">import numpy as np</span><br><span class="line">from pyntcloud import PyntCloud</span><br><span class="line">import argparse</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 功能：计算PCA的函数</span><br><span class="line"># 输入：</span><br><span class="line">#     data：点云，NX3的矩阵</span><br><span class="line">#     correlation：区分np的cov和corrcoef，不输入时默认为False</span><br><span class="line">#     sort: 特征值排序，排序是为了其他功能方便使用，不输入时默认为True</span><br><span class="line"># 输出：</span><br><span class="line">#     eigenvalues：特征值</span><br><span class="line">#     eigenvectors：特征向量</span><br><span class="line"></span><br><span class="line"># 计算点云PCA</span><br><span class="line">def PCA(data, correlation=False, sort=True):</span><br><span class="line">    N = data.shape[0]  # 获取点云数据中的点的数量</span><br><span class="line">    X = data.to_numpy()  # 将数据转换为numpy格式</span><br><span class="line"></span><br><span class="line">    # 归一化处理</span><br><span class="line">    mu = np.mean(X, axis=0)</span><br><span class="line">    X_normalized = X - mu</span><br><span class="line"></span><br><span class="line">    # 定义函数，这里我们使用暂不使用核函数的方法，而是计算归一化数据的协方差矩阵</span><br><span class="line">    func = np.cov if not correlation else np.corrcoef</span><br><span class="line">    H = func(X_normalized, rowvar=False, bias=True)</span><br><span class="line"></span><br><span class="line">    # 计算协方差矩阵的特征值和特征向量,这里需要注意得到的协方差矩阵维数为3</span><br><span class="line">    eigenvalues, eigenvectors = np.linalg.eig(H)</span><br><span class="line"></span><br><span class="line">    # 对特征值进行排序，特征值最大的就是最主要的成分，用于求取PCA；最小的就是最不重要的成分，用于求取法向量；对三个特征值进行排序后得到其由小到大的索引，</span><br><span class="line">    # 用该索引对特征向量排序，则[:,0]就是最小特征值对应的特征向量，即法向量；则[:,2]就是最大的特征值对赢得特征向量，即PCA</span><br><span class="line">    if sort:</span><br><span class="line">        sort = eigenvalues.argsort()[::-1]</span><br><span class="line">        eigenvalues = eigenvalues[sort]</span><br><span class="line">        eigenvectors = eigenvectors[:, sort]</span><br><span class="line">    return eigenvalues, eigenvectors</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># 使用open3d可视化PCA</span><br><span class="line">def get_pca_o3d(w, v, points):</span><br><span class="line">    # 中心为点云数据的中心</span><br><span class="line">    centroid = points.mean()</span><br><span class="line">    # 获取尺度</span><br><span class="line">    projs = np.dot(points.to_numpy(), v[:, 0])</span><br><span class="line">    scale = projs.max() - projs.min()</span><br><span class="line">    #</span><br><span class="line">    points = centroid.to_numpy() + np.vstack(</span><br><span class="line">        (</span><br><span class="line">            np.asarray([0.0, 0.0, 0.0]),</span><br><span class="line">            scale * v.T</span><br><span class="line">        )</span><br><span class="line">    ).tolist()</span><br><span class="line">    lines = [[0, 1], [0, 2], [0, 3]]</span><br><span class="line">    colors = np.identity(3).tolist()</span><br><span class="line">    pca_o3d = o3d.geometry.LineSet(</span><br><span class="line">        points=o3d.utility.Vector3dVector(points),</span><br><span class="line">        lines=o3d.utility.Vector2iVector(lines),</span><br><span class="line">    )</span><br><span class="line">    pca_o3d.colors = o3d.utility.Vector3dVector(colors)</span><br><span class="line">    return pca_o3d</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_surface_normals(pcd, points, knn=5):</span><br><span class="line">    # 设定点集搜索方法</span><br><span class="line">    pcd_tree = o3d.geometry.KDTreeFlann(pcd)</span><br><span class="line">    # 点的数量</span><br><span class="line">    N = len(pcd.points)</span><br><span class="line">    # 法向量容器</span><br><span class="line">    normals = []</span><br><span class="line">    # 分别计算每个点的法线</span><br><span class="line">    for i in range(N):</span><br><span class="line">        # 获取当前点的最临近5个点</span><br><span class="line">        [k, idx, _] = pcd_tree.search_knn_vector_3d(pcd.points[i], knn)</span><br><span class="line">        # 获取特征值和特征向量</span><br><span class="line">        w, v = PCA(points.iloc[idx])</span><br><span class="line">        # 得到特征向量的矩阵v，拿到临近点集协方差矩阵的特征值最小的特征向量，即该点的特征向量</span><br><span class="line">        normals.append(v[:, 0])</span><br><span class="line">    return np.array(normals, dtype=np.float64)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_surface_normal_o3d(normals, points, scale=2):</span><br><span class="line">    N = points.shape[0]</span><br><span class="line">    points = np.vstack(</span><br><span class="line">        (points.to_numpy(), points.to_numpy() + scale * normals)</span><br><span class="line">    )</span><br><span class="line">    lines = [[i, i + N] for i in range(N)]</span><br><span class="line">    colors = np.zeros((N, 3)).tolist()</span><br><span class="line"></span><br><span class="line">    surface_normals_o3d = o3d.geometry.LineSet(</span><br><span class="line">        points=o3d.utility.Vector3dVector(points),</span><br><span class="line">        lines=o3d.utility.Vector2iVector(lines),</span><br><span class="line">    )</span><br><span class="line">    surface_normals_o3d.colors = o3d.utility.Vector3dVector(colors)</span><br><span class="line">    return surface_normals_o3d</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def main(point_cloud_filename):</span><br><span class="line">    # 加载原始点云</span><br><span class="line">    point_cloud_pynt = PyntCloud.from_file(point_cloud_filename)</span><br><span class="line">    point_cloud_o3d = point_cloud_pynt.to_instance(&quot;open3d&quot;, mesh=False)</span><br><span class="line">    # o3d.visualization.draw_geometries([point_cloud_o3d]) # 显示原始点云</span><br><span class="line"></span><br><span class="line">    # 从点云中获取点，只对点进行处理</span><br><span class="line">    points = point_cloud_pynt.points</span><br><span class="line">    print(&#x27;total points number is:&#x27;, points.shape[0])</span><br><span class="line"></span><br><span class="line">    # 用PCA分析点云主方向</span><br><span class="line">    w, v = PCA(points)</span><br><span class="line">    point_cloud_vector = v[:, 2]  # 点云主方向对应的向量</span><br><span class="line">    print(&#x27;the main orientation of this pointcloud is: &#x27;, point_cloud_vector)</span><br><span class="line">    # TODO: 此处只显示了点云，还没有显示PCA</span><br><span class="line">    # o3d.visualization.draw_geometries([point_cloud_o3d])</span><br><span class="line">    pca_o3d = get_pca_o3d(w, v, points)</span><br><span class="line"></span><br><span class="line">    # 循环计算每个点的法向量</span><br><span class="line">    normals = get_surface_normals(point_cloud_o3d, points)</span><br><span class="line">    point_cloud_o3d.normals = o3d.utility.Vector3dVector(normals)</span><br><span class="line">    surface_normals_o3d = get_surface_normal_o3d(normals, points)</span><br><span class="line">    o3d.visualization.draw_geometries([point_cloud_o3d, pca_o3d,surface_normals_o3d])</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">def get_arguments():</span><br><span class="line">    &quot;&quot;&quot; Get command-line arguments</span><br><span class="line">    &quot;&quot;&quot;</span><br><span class="line"></span><br><span class="line">    # init parser:</span><br><span class="line">    parser = argparse.ArgumentParser(&quot;Get PCA and surface normals for given point cloud.&quot;)</span><br><span class="line"></span><br><span class="line">    # add required and optional groups:</span><br><span class="line">    required = parser.add_argument_group(&#x27;Required&#x27;)</span><br><span class="line"></span><br><span class="line">    # add required:</span><br><span class="line">    required.add_argument(</span><br><span class="line">        &quot;-i&quot;, dest=&quot;input&quot;, help=&quot;Input path of point cloud in ply format.&quot;,</span><br><span class="line">        required=True</span><br><span class="line">    )</span><br><span class="line"></span><br><span class="line">    # parse arguments:</span><br><span class="line">    return parser.parse_args()</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">    arguments = get_arguments()</span><br><span class="line">    main(arguments.input)</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
