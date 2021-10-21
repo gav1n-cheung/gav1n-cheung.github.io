@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="keywords" content="hexo,个人博客,blog" />
+  <meta name="description" content="Cheung&#39;Blog" />
+  <meta http-equiv="x-dns-prefetch-control" content="on">
+  <link rel="dns-prefetch" href="https://busuanzi.ibruce.info">
+  <link rel="dns-prefetch" href="https://at.alicdn.com">
+  
+  <link rel="dns-prefetch" href="https://widget.daovoice.io">
+  <link rel="dns-prefetch" href="https://widget-static-cdn.daovoice.io">
+  <link rel="dns-prefetch" href="https://im.daovoice.io">
+  
+  
+  <link rel="dns-prefetch" href="https://hm.baidu.com/">
+  
+  
+  <link rel="stylesheet" type="text/css" href="/./style/main.css">
+	<link rel="shortcut icon" href="/img/symbol.ico" title="Favicon">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+	<title>K-Means</title>
+  
+  <script>var _hmt=_hmt||[];(function(){var hm=document.createElement("script");hm.src="https://hm.baidu.com/hm.js?awwssw1snsnsnn1ndndnndnd99j";var s=document.getElementsByTagName("script")[0];s.parentNode.insertBefore(hm,s);})();
+  </script>
+  
+  
+    <script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/123456.js","daovoice");daovoice('init',{app_id: "123456"});daovoice('update');
+  </script>
+  
+<meta name="generator" content="Hexo 5.4.0"></head>
+<body>
+  <canvas id="pattern-placeholder" height="230"></canvas>
+<div class="navbar-header">
+  <a class="blog-title" href="/">Cheung&#39;Blog</a>
+  <a class="face-img" href="/">
+    <img src="https://i.postimg.cc/xT7h6nCZ/2021-07-04-12-03.png">
+  </a>
+</div>
+<main>
+  <div class="article-title">
+    
+  
+  <h1 class="title">
+    K-Means
+  </h1>
+  
+
+
+    <ul class="article-info">
+      <li>
+        发布
+        <time datetime="2021-10-21T09:21:46.000Z" itemprop="datePublished">2021-10-21</time>
+      </li>
+      <li>
+        
+    更新 <time datetime="2021-10-21T09:23:34.742Z" itemprop="dateUpdated">2021-10-21</time>
+
+      </li>
+      <li id="busuanzi_container_page_pv">
+        阅读 <span id="busuanzi_value_page_pv"></span>
+      </li>
+    </ul>
+  </div>
+  <div class="container">
+    <div class="article">
+      <div class="content">
+        
+        <p>使用K-Means实现聚类点</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br></pre></td><td class="code"><pre><span class="line">import numpy as np</span><br><span class="line">import pandas as pd</span><br><span class="line">import random</span><br><span class="line">import matplotlib.pyplot as plt</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">class kMeans(object):</span><br><span class="line">    # 初始化参数: n_clusters--聚类数量;tolerance--误差;max_iter最大循环次数</span><br><span class="line">    def __init__(self, n_clusters=2, tolerance=0.01, max_iter=300):</span><br><span class="line">        self.__K = n_clusters</span><br><span class="line">        self.__tolerance = tolerance</span><br><span class="line">        self.__max_iter = max_iter</span><br><span class="line">        self.__centroids = None</span><br><span class="line">    #</span><br><span class="line">    def fit(self, data):</span><br><span class="line">        # 获取点云size</span><br><span class="line">        N, D = data.shape</span><br><span class="line">        # 将其format为pandas的数据格式</span><br><span class="line">        __data = pd.DataFrame(</span><br><span class="line">            data=data,</span><br><span class="line">            index=np.arange(N),</span><br><span class="line">            columns=[f&#x27;x&#123;i:03d&#125;&#x27; for i in range(D)]</span><br><span class="line">        )</span><br><span class="line">        # 数据的聚类数量初始为0</span><br><span class="line">        __data[&#x27;cluster&#x27;] = 0</span><br><span class="line">        # 得到适应于数据集的误差</span><br><span class="line">        self.__tolerance = kMeans.__tolerance(data, self.__tolerance)</span><br><span class="line">        # 得到中心点</span><br><span class="line">        self.__centroids = self.__get_init_centroid_kmeanspp(data)</span><br><span class="line">        # 遍历</span><br><span class="line">        for i in range(self.__max_iter):</span><br><span class="line">            # 预测</span><br><span class="line">            __data.cluster = __data.apply(</span><br><span class="line">                lambda x: kMeans.__assign(x[:-1].values, self.__centroids),</span><br><span class="line">                axis=1</span><br><span class="line">            )</span><br><span class="line">            # 最大化</span><br><span class="line">            new_centroid = __data.groupby([&#x27;cluster&#x27;]).mean().values</span><br><span class="line">            # 计算L2范数</span><br><span class="line">            diff = (new_centroid - self.__centroids).ravel()</span><br><span class="line">            squared_diff = np.dot(diff, diff)</span><br><span class="line">            # 更新聚类中心点</span><br><span class="line">            self.__centroids = new_centroid</span><br><span class="line">            if squared_diff &lt;= self.__tolerance:</span><br><span class="line">                print(</span><br><span class="line">                    f&#x27;[KMeans - Fit]: early stopping with squared centroids diff &#123;squared_diff:.2f&#125; at iteration &#123;i:03d&#125;&#x27;)</span><br><span class="line">                break</span><br><span class="line">    # 作出预测</span><br><span class="line">    def predict(self, data):</span><br><span class="line">        N, _ = data.shape</span><br><span class="line">        result = np.asarray(</span><br><span class="line">            [kMeans.__assign(data[i], self.__centroids) for i in range(N)]</span><br><span class="line">        )</span><br><span class="line">        return result</span><br><span class="line">    # 获取中心点</span><br><span class="line">    def get_centroids(self):</span><br><span class="line">        return np.copy(self.__centroids)</span><br><span class="line">    # 随机选择一个聚类中心点</span><br><span class="line">    def __get_init_centroid_random(self, data):</span><br><span class="line">        N, _ = data.shape</span><br><span class="line">        idx_centroids = np.random.choice(np.arange(N), size=self.__K, replace=False)</span><br><span class="line">        centroids = data[idx_centroids]</span><br><span class="line">        return centroids</span><br><span class="line">    # 通过kmeans++获取初始的中心点</span><br><span class="line">    def __get_init_centroid_kmeanspp(self, data):</span><br><span class="line">        N, _ = data.shape</span><br><span class="line">        # 随机获得初始点</span><br><span class="line">        centroids = data[np.random.choice(np.arange(N), size=1, replace=False)]</span><br><span class="line">        # 其他的中心点通过与初始中心点的最小距离按照概率选择</span><br><span class="line">        for _ in range(1, self.__K):</span><br><span class="line">            distances = np.asarray(</span><br><span class="line">                [</span><br><span class="line">                    np.min(np.linalg.norm(d - centroids, axis=1)) ** 2 for d in data</span><br><span class="line">                ]</span><br><span class="line">            )</span><br><span class="line">            # 生成累计概率</span><br><span class="line">            probs = distances / np.sum(distances)</span><br><span class="line">            # 得到给定轴的累计和</span><br><span class="line">            cum_probs = np.cumsum(probs)</span><br><span class="line">            # 选择一个新的中心点</span><br><span class="line">            centroids = np.vstack((centroids, data[np.searchsorted(cum_probs, random.random())]))</span><br><span class="line">        return centroids</span><br><span class="line">    # 返回一个L2范数的评价指标</span><br><span class="line">    def __assign(data, centroids):</span><br><span class="line">        return np.argmin(np.linalg.norm(centroids - data, axis=1))</span><br><span class="line">    # 返回一个基于数据集的误差参数</span><br><span class="line">    def __tolerance(data, tol):</span><br><span class="line">        variances = np.var(data, axis=0)</span><br><span class="line">        return np.mean(variances) * tol</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">if __name__ == &#x27;__main__&#x27;:</span><br><span class="line">    K = 2</span><br><span class="line">    X = np.array([</span><br><span class="line">        [1, 2],</span><br><span class="line">        [1.5, 1.8],</span><br><span class="line">        [5, 8],</span><br><span class="line">        [8, 8],</span><br><span class="line">        [1, 0.6],</span><br><span class="line">        [9, 11]</span><br><span class="line">    ])</span><br><span class="line"></span><br><span class="line">    k_means = kMeans(n_clusters=K)</span><br><span class="line">    k_means.fit(X)</span><br><span class="line">    category = k_means.predict(X)</span><br><span class="line">    color = [&#x27;red&#x27;, &#x27;blue&#x27;, &#x27;cyan&#x27;, &#x27;magenta&#x27;]</span><br><span class="line">    labels = [f&#x27;Cluster&#123;k:02d&#125;&#x27; for k in range(K)]</span><br><span class="line">    for k in range(K):</span><br><span class="line">        plt.scatter(X[category == k][:,0], X[category == k][:,1], c=color[k], label=labels[k])</span><br><span class="line">    centroids = k_means.get_centroids()</span><br><span class="line">    plt.scatter(centroids[:, 0], centroids[:, 1], s=300, c=&#x27;grey&#x27;, marker=&#x27;P&#x27;, label=&#x27;Centroids&#x27;)</span><br><span class="line"></span><br><span class="line">    plt.xlabel(&#x27;X&#x27;)</span><br><span class="line">    plt.ylabel(&#x27;Y&#x27;)</span><br><span class="line">    plt.legend()</span><br><span class="line">    plt.title(&#x27;KMeans Testcase&#x27;)</span><br><span class="line">    plt.show()</span><br></pre></td></tr></table></figure>
+
+      </div>
+        <div class="support-author">
+          <p>感谢您的阅读。 🙏
+          <a href="https://888.com/index.html" target="_blank">关于转载请看这里</a>
+            <!--<a class="btn-pay"  href="#pay-modal">¥ 打赏支持</a>-->
+          </p>
+        </div>
+        <!--
+            <div class="like ">
+              <div class="like-button">
+                <a id="like-note" href="">
+                  <i class="icon-heart"></i>喜欢
+                </a>
+              </div>
+              <span id="likes-count">256</span>
+            </div>
+        -->
+        <div class="otherLink">
+          <div class="previous">
+          </div>
+          <div class="next">
+          </div>
+        </div>
+        <div class="comments" id="comments">
+          
+
+        </div>
+      </div>
+    </div>
+   </div>
+</main>
+<div class="footer">
+  <div class="info">
+    <p>
+    <a target="_blank" rel="noopener" href="https://hexo.io"> Hexo </a> 强力驱动 |
+      <a target="_blank" rel="noopener" href="https://github.com/Youthink/hexo-themes-yearn"> Yearn </a>
+      主题
+    </p>
+    <p>&copy;2020-2020 张芙锦的博客</p>
+  </div>
+</div>
+<script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+  <!-- MathJax配置，可通过单美元符号书写行内公式等 -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+    "HTML-CSS": {
+        preferredFont: "TeX",
+        availableFonts: ["STIX","TeX"],
+        linebreaks: { automatic:true },
+        EqnChunk: (MathJax.Hub.Browser.isMobile ? 10 : 50)
+    },
+    tex2jax: {
+        inlineMath: [ ["$", "$"], ["\\(","\\)"] ],
+        processEscapes: true, 
+        ignoreClass: "tex2jax_ignore|dno",
+        skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    TeX: {
+        equationNumbers: { autoNumber: "AMS" },
+        noUndefined: { attributes: { mathcolor: "red", mathbackground: "#FFEEEE", mathsize: "90%" } },
+        Macros: { href: "{}" }
+    },
+    messageStyle: "none"
+    });
+</script>
+<!-- 给MathJax元素添加has-jax class -->
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for(i=0; i < all.length; i += 1) {
+            all[i].SourceElement().parentNode.className += ' has-jax';
+        }
+    });
+</script>
+<!-- 通过连接CDN加载MathJax的js代码 -->
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+
+
+<script>//console
+  var consoleConfig = '\n欢迎访问 https://hufangyun.com ，围观小猿大圣的博客(づ｡◕‿‿◕｡)づ！\n,\n本博客使用 %cHexo%c 搭建，博客主题为小猿大圣开发的 %chexo-themes-yearn%c ~~~ 🎉🎉🎉 \n\n源码 https://github.com/Youthink/hexo-themes-yearn \n\n如果喜欢可以 star 支持一下 ❤️~\n,\n扫描下面的二维码，在手机上查看博客！\n,https://static.hufangyun.com/blog-url-qrcode-180-180.png,\n 想知道这个效果如何实现的？博客内搜索 console 彩蛋 🚀 ！\n'.split(',');
+  var canConsole = true;
+  var consoleInfo = (function(consoleConfig) {
+  if (!canConsole || !consoleConfig || consoleConfig.length < 1) {
+    return;
+  }
+  var consoleColor = '#6190e8';
+  var _console;
+  var backgroundTextStyle = 'padding: 1px 5px;color: #fff;background: ' + consoleColor + ';'
+  var textStyle = 'color: ' + consoleColor + ';';
+
+  consoleConfig.map(o => {
+    var num = (o.match(/%c/g) || []).length;
+    if(/^http(s)?:\/\//.test(o)) {
+      console.log('%c     ', 'background: url(' + o + ') no-repeat left center;font-size: 180px;');
+      return;
+    }
+    if (num > 0) {
+      var logArguments = [];
+      for (var i = 0; i < num; i++) {
+        if (i % 2 === 0) {
+          logArguments.push(backgroundTextStyle);
+        } else {
+          logArguments.push(textStyle);
+        }
+      }
+      (_console = console).log.apply(_console, ['%c' + o, textStyle].concat(logArguments));
+      return;
+    }
+    console.log('%c' + o, textStyle);
+  });
+}(consoleConfig));</script><script type="text/javascript" src="/./js/main.js"></script>
+
+  <script src="//at.alicdn.com/t/font_159214_mvtxvg9me9.js"></script>
+</body>
+</html>
